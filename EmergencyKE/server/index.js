@@ -3,9 +3,11 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:5173' }));
 app.use(express.json());
 
-app.get('/', (req, res) => res.json({ message: 'Server is running' }));
+app.use('/api/auth', require('./routes/auth.routes'));
+
+app.get('/', (req, res) => res.json({ message: 'JioKoa API running' }));
 
 app.listen(5000, () => console.log('Server running on port 5000'));
