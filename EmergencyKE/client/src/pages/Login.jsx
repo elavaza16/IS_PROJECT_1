@@ -9,13 +9,14 @@ export default function Login() {
   const navigate = useNavigate();
   const { loginUser } = useAuth();
 
-  const [form,    setForm]    = useState({ email: "", password: "" });
-  const [showPw,  setShowPw]  = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [err,     setErr]     = useState("");
-  const [ok,      setOk]      = useState("");
+  const [form,       setForm]       = useState({ email: "", password: "" });
+  const [showPw,     setShowPw]     = useState(false);
+  const [loading,    setLoading]    = useState(false);
+  const [err,        setErr]        = useState("");
+  const [ok,         setOk]         = useState("");
+  const [unverified, setUnverified] = useState(false);
 
-  useEffect(() => { setErr(""); }, [form]);
+  useEffect(() => { setErr(""); setUnverified(false); }, [form]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -30,7 +31,13 @@ export default function Login() {
         body:    JSON.stringify(form),
       });
       const data = await res.json();
-      if (!res.ok) { setErr(data.error || "Login failed."); setLoading(false); return; }
+
+      if (!res.ok) {
+        if (data.error?.includes("verify your email")) setUnverified(true);
+        else setErr(data.error || "Login failed.");
+        setLoading(false);
+        return;
+      }
 
       loginUser(data.user, data.token);
       setOk("Login successful! Redirecting…");
@@ -59,6 +66,26 @@ export default function Login() {
         {/* Alerts */}
         {err && <p className="auth-alert error">{err}</p>}
         {ok  && <p className="auth-alert success">{ok}</p>}
+
+        {/* Unverified warning */}
+        {unverified && (
+          <div style={{ background:"#FFFBF0", border:"1px solid #f0d060",
+            borderLeft:"3px solid #D4AC0D", borderRadius:8,
+            padding:"12px 14px", marginBottom:16,
+            fontSize:13, color:"#7F8C8D" }}>
+            <strong style={{ color:"#1A252F", display:"block", marginBottom:4 }}>
+              Email not verified
+            </strong>
+            Check your inbox for the verification link we sent you.
+            Can't find it? Check your spam folder.
+            <br />
+            <button type="button" className="auth-link"
+              style={{ fontSize:13, marginTop:8 }}
+              onClick={() => navigate("/register")}>
+              Register again to resend the link
+            </button>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={submit} noValidate>
