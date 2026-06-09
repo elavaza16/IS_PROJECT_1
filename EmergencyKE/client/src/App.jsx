@@ -1,23 +1,23 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import VerifyEmail from './pages/VerifyEmail';
-import PublicDashboard from './pages/PublicDashboard';
-import VolunteerDashboard from './pages/VolunteerDashboard';
-import AdminDashboard from './pages/AdminDashboard';
+import Login        from './pages/auth/Login';
+import Register     from './pages/auth/Register';
+import VerifyEmail  from './pages/auth/VerifyEmail';
+import PublicDashboard    from './pages/public/PublicDashboard';
+import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
+import AdminDashboard     from './pages/admin/AdminDashboard';
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/login"    element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/login"        element={<Login />} />
+          <Route path="/register"     element={<Register />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/" element={
-            <ProtectedRoute roles={['community_member', 'volunteer']}>
+            <ProtectedRoute roles={['community_member','volunteer']}>
               <PublicDashboard />
             </ProtectedRoute>
           } />
