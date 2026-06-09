@@ -12,7 +12,7 @@ export default function VerifyEmail() {
     const token = searchParams.get("token");
     if (!token) { setStatus("error"); setMessage("No token found in link."); return; }
 
-    fetch(`http://localhost:5000/api/auth/verify-email?token=${token}`)
+    fetch(`${import.meta.env.VITE_API_URL}/auth/verify-email?token=${token}`)
       .then(res => res.json())
       .then(data => {
         if (data.message) {
