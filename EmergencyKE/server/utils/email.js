@@ -13,7 +13,7 @@ exports.sendVerificationEmail = async (toEmail, token) => {
       await brevo.transactionalEmails.sendTransacEmail({
         sender: {
           name: 'EmergencyKE',
-          email: 'no-reply@brevo.com'
+          email: 'noreply.emergencyke@gmail.com'
         },
 
         to: [
