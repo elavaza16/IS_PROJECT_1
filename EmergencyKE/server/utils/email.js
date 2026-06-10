@@ -1,8 +1,7 @@
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 exports.sendVerificationEmail = async (toEmail, token) => {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
 
   await resend.emails.send({
