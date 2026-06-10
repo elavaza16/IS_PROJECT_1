@@ -1,14 +1,17 @@
-const { Resend } = require('resend');
+const Brevo = require('@getbrevo/brevo');
 
 exports.sendVerificationEmail = async (toEmail, token) => {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const client = Brevo.ApiClient.instance;
+  client.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
+
+  const apiInstance = new Brevo.TransactionalEmailsApi();
   const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
 
-  await resend.emails.send({
-    from:    'EmergencyKE <onboarding@resend.dev>',
-    to:      toEmail,
-    subject: 'Verify your EmergencyKE account',
-    html: `
+  await apiInstance.sendTransacEmail({
+    sender:      { name: 'EmergencyKE', email: 'emergencyke@gmail.com' },
+    to:          [{ email: toEmail }],
+    subject:     'Verify your EmergencyKE account',
+    htmlContent: `
       <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;">
         <h2 style="color:#C0392B;">EmergencyKE</h2>
         <p>Thank you for registering. Please verify your email address to activate your account.</p>
