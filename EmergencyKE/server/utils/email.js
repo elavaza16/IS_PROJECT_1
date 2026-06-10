@@ -1,24 +1,12 @@
-const nodemailer = require('nodemailer');
-require('dotenv').config();
+const { Resend } = require('resend');
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 exports.sendVerificationEmail = async (toEmail, token) => {
   const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
 
-  await transporter.sendMail({
-    from:    process.env.EMAIL_FROM,
+  await resend.emails.send({
+    from:    'EmergencyKE <onboarding@resend.dev>',
     to:      toEmail,
     subject: 'Verify your EmergencyKE account',
     html: `
