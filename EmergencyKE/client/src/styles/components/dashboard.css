@@ -174,6 +174,66 @@ td {
 }
 tbody tr:hover { background: var(--grey-lt); }
 tbody tr:last-child td { border-bottom: none; }
+/* ── Mobile hamburger ── */
+.dash-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--navy);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Mobile overlay ── */
+.dash-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 20;
+}
+
+/* ── Mobile drawer ── */
+.dash-drawer {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 240px;
+  background: var(--navy);
+  z-index: 30;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  flex-direction: column;
+  padding: var(--space-xl) 0;
+}
+
+.dash-drawer.open {
+  transform: translateX(0);
+}
+
+.dash-drawer-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+.dash-drawer-close:hover { color: #fff; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .dash-sidebar    { display: none; }
+  .dash-main       { margin-left: 0; }
+  .dash-content    { padding: var(--space-md); }
+  .dash-hamburger  { display: flex; }
+  .dash-overlay    { display: block; }
+  .dash-drawer     { display: flex; }
+}
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
@@ -181,3 +241,4 @@ tbody tr:last-child td { border-bottom: none; }
   .dash-main    { margin-left: 0; }
   .dash-content { padding: var(--space-md); }
 }
+
