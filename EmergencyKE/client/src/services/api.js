@@ -10,7 +10,34 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-export const registerUser = (data) => API.post('/auth/register', data);
-export const loginUser = (data) => API.post('/auth/login', data);
+// ── Auth ──────────────────────────────────────────────────────
+export const registerUser  = (data)  => API.post('/auth/register', data);
+export const loginUser     = (data)  => API.post('/auth/login', data);
+export const verifyEmail   = (token) => API.get(`/auth/verify-email?token=${token}`);
+
+// ── Incidents ─────────────────────────────────────────────────
+export const reportIncident = (data)       => API.post('/incidents', data);
+export const getIncidents   = ()           => API.get('/incidents');
+export const getMyIncidents = ()           => API.get('/incidents/mine');
+export const updateStatus   = (id, status) => API.patch(`/incidents/${id}/status`, { status });
+
+// ── Volunteers ────────────────────────────────────────────────
+export const applyVolunteer = (data) => API.post('/volunteers/apply', data);
+export const acceptAlert    = (id)   => API.patch(`/incidents/${id}/respond`, { response: 'accepted' });
+export const declineAlert   = (id)   => API.patch(`/incidents/${id}/respond`, { response: 'declined' });
+export const getMyResponses = ()     => API.get('/volunteers/history');
+
+// ── Messages ──────────────────────────────────────────────────
+export const getMessages = (incidentId) => API.get(`/messages/${incidentId}`);
+export const sendMessage = (data)       => API.post('/messages', data);
+
+// ── Admin ─────────────────────────────────────────────────────
+export const getAllIncidents   = (filters = '') => API.get(`/admin/incidents${filters}`);
+export const getAllVolunteers  = ()             => API.get('/admin/volunteers');
+export const getAllUsers       = ()             => API.get('/admin/users');
+export const approveVolunteer = (id)           => API.patch(`/admin/volunteers/${id}/approve`);
+export const rejectVolunteer  = (id)           => API.patch(`/admin/volunteers/${id}/reject`);
+export const getAnalytics     = ()             => API.get('/admin/analytics');
+export const deactivateUser   = (id)           => API.patch(`/admin/users/${id}/deactivate`);
 
 export default API;

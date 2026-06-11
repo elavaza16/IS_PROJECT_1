@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { registerUser } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import { MdEmail, MdLock, MdPhone, MdPerson } from "react-icons/md";
 import AuthCard from "../../components/layout/AuthCard";
 import InputField from "../../components/ui/InputField";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
+
 
 const FIELDS = [
   { id:"full_name", label:"Full Name",     type:"text",  placeholder:"Jane Mwangi",      icon:MdPerson, autoComplete:"name",  autoFocus:true  },
@@ -32,29 +34,25 @@ export default function Register() {
 
   const handle = (e) => { setForm({ ...form, [e.target.name]: e.target.value }); setErr(""); };
 
-  const submit = async (e) => {
-    e.preventDefault();
-    const error = validate(form);
-    if (error) { setErr(error); return; }
+const submit = async (e) => {
+  e.preventDefault();
+  const error = validate(form);
+  if (error) { setErr(error); return; }
 
-    setLoading(true);
-    try {
-      const res  = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          full_name: form.full_name, email: form.email,
-          phone: form.phone,         password: form.password,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setErr(data.error || "Registration failed."); setLoading(false); return; }
-      setDone(true);
-    } catch {
-      setErr("Unable to connect to server.");
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    await registerUser({
+      full_name: form.full_name,
+      email:     form.email,
+      phone:     form.phone,
+      password:  form.password,
+    });
+    setDone(true);
+  } catch (err) {
+    setErr(err.response?.data?.error || "Registration failed.");
+    setLoading(false);
+  }
+};
 
   // ── Check email screen ───────────────────────────────────
   if (done) return (

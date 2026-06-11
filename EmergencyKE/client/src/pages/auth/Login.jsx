@@ -2,22 +2,22 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { MdEmail, MdLock } from "react-icons/md";
 import { useAuth } from "../../context/AuthContext";
+import { loginUser as loginRequest } from "../../services/api";
 import AuthCard from "../../components/layout/AuthCard";
 import InputField from "../../components/ui/InputField";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
 
 export default function Login() {
-  const navigate        = useNavigate();
-  const location        = useLocation();
-  const { loginUser }   = useAuth();
+  const navigate      = useNavigate();
+  const location      = useLocation();
+  const { loginUser } = useAuth();
 
   const [form,       setForm]       = useState({ email: "", password: "" });
   const [loading,    setLoading]    = useState(false);
   const [err,        setErr]        = useState("");
   const [unverified, setUnverified] = useState(false);
 
-  // Success message passed from Register page
   const successMsg = location.state?.message;
 
   useEffect(() => { setErr(""); setUnverified(false); }, [form]);
@@ -31,30 +31,17 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const res  = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(form),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        data.error?.includes("verify your email")
-          ? setUnverified(true)
-          : setErr(data.error || "Login failed.");
-        setLoading(false);
-        return;
-      }
-
+      const { data } = await loginRequest(form);
       loginUser(data.user, data.token);
       setTimeout(() => {
         if      (data.user.role === "admin")     navigate("/admin");
         else if (data.user.role === "volunteer") navigate("/volunteer");
         else                                     navigate("/");
       }, 600);
-
-    } catch {
-      setErr("Unable to connect to server.");
+    } catch (err) {
+      const message = err.response?.data?.error;
+      if (message?.includes("verify your email")) setUnverified(true);
+      else setErr(message || "Login failed.");
       setLoading(false);
     }
   };

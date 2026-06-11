@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { verifyEmail } from "../../services/api";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import AuthCard from "../../components/layout/AuthCard";
 import Button from "../../components/ui/Button";
@@ -11,26 +12,23 @@ export default function VerifyEmail() {
   const [status,  setStatus]  = useState("verifying");
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    const token = searchParams.get("token");
-    if (!token) { setStatus("error"); setMessage("No token found in link."); return; }
+ useEffect(() => {
+  const token = searchParams.get("token");
+  if (!token) { setStatus("error"); setMessage("No token found in link."); return; }
 
-    fetch(`http://localhost:5000/api/auth/verify-email?token=${token}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.message) {
-          setStatus("success");
-          setMessage(data.message);
-          setTimeout(() => navigate("/login", {
-            state: { message: "Email verified. Please log in." }
-          }), 2500);
-        } else {
-          setStatus("error");
-          setMessage(data.error || "Verification failed.");
-        }
-      })
-      .catch(() => { setStatus("error"); setMessage("Unable to connect to server."); });
-  }, []);
+  verifyEmail(token)
+    .then(({ data }) => {
+      setStatus("success");
+      setMessage(data.message);
+      setTimeout(() => navigate("/login", {
+        state: { message: "Email verified. Please log in." }
+      }), 2500);
+    })
+    .catch((err) => {
+      setStatus("error");
+      setMessage(err.response?.data?.error || "Verification failed.");
+    });
+}, []);
 
   return (
     <AuthCard subtitle="Email Verification">
