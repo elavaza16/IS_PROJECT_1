@@ -1,7 +1,9 @@
-const db = require('../config/db');
-
 exports.applyVolunteer = async (req, res) => {
-  const { tier, general_area, latitude, longitude, declaration_signed } = req.body;
+  const {
+    tier, general_area, latitude, longitude,
+    declaration_signed, national_id, drivers_licence,
+    number_plate, vehicle_insurance, first_aid_cert,
+  } = req.body;
   const user_id = req.user.id;
 
   try {
@@ -11,31 +13,37 @@ exports.applyVolunteer = async (req, res) => {
     if (existing.length)
       return res.status(409).json({ error: 'You have already applied.' });
 
-    await db.query(
+    // Insert volunteer record
+    const [result] = await db.query(
       `INSERT INTO volunteers
         (user_id, tier, latitude, longitude, declaration_signed, declaration_signed_at)
        VALUES (?,?,?,?,?,NOW())`,
       [user_id, tier, latitude, longitude, declaration_signed ? 1 : 0]
     );
-    res.status(201).json({ message: 'Application submitted. Pending admin approval.' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    const volunteer_id = result.insertId;
 
-exports.getHistory = async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      `SELECT i.*, da.responded_at, da.status as alert_status
-       FROM incidents i
-       JOIN dispatch_alerts da ON da.incident_id = i.incident_id
-       JOIN volunteers v ON da.volunteer_id = v.volunteer_id
-       WHERE v.user_id = ?
-       ORDER BY i.reported_at DESC`,
-      [req.user.id]
-    );
-    res.json(rows);
+    // Insert document records
+    const docs = [
+      ['national_id',       national_id],
+      ['drivers_licence',   drivers_licence],
+      ['number_plate',      number_plate],
+      ['vehicle_insurance', vehicle_insurance],
+      ['first_aid_cert',    first_aid_cert],
+    ].filter(([, val]) => val); // only insert if value provided
+
+    for (const [doc_type, file_path] of docs) {
+      await db.query(
+        `INSERT INTO volunteer_documents (volunteer_id, document_type, file_path)
+         VALUES (?,?,?)`,
+        [volunteer_id, doc_type, file_path]
+      );
+    }
+
+    res.status(201).json({
+      message: 'Application submitted. Pending admin approval.'
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Apply volunteer error:', err);
+    res.status(500).json({ error: 'Server error. Please try again.' });
   }
 };
