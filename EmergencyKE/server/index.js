@@ -10,6 +10,7 @@ app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/incidents',  require('./routes/incident.routes'));
 app.use('/api/messages',   require('./routes/message.routes'));
 app.use('/api/volunteers', require('./routes/volunteer.routes'));
+app.use('/api/admin', require('./routes/admin.routes'));
 
 app.get('/', (req, res) => res.json({ message: 'EmergencyKE API running' }));
 
