@@ -7,6 +7,9 @@ import VerifyEmail  from './pages/auth/VerifyEmail';
 import PublicDashboard    from './pages/public/PublicDashboard';
 import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
 import AdminDashboard     from './pages/admin/AdminDashboard';
+import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
+import ActiveAlert       from './pages/volunteer/ActiveAlert';
+import ResponseHistory    from './pages/volunteer/ResponseHistory';
 
 export default function App() {
   return (
@@ -24,6 +27,16 @@ export default function App() {
           <Route path="/volunteer" element={
             <ProtectedRoute roles={['volunteer']}>
               <VolunteerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/volunteer/alert/:id" element={
+            <ProtectedRoute roles={['volunteer']}>
+              <ActiveAlert />
+            </ProtectedRoute>
+          } />
+          <Route path="/volunteer/history" element={
+            <ProtectedRoute roles={['volunteer']}>
+              <ResponseHistory />
             </ProtectedRoute>
           } />
           <Route path="/admin" element={
