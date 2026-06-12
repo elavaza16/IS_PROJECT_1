@@ -16,9 +16,9 @@ exports.applyVolunteer = async (req, res) => {
     // Insert volunteer record
     const [result] = await db.query(
       `INSERT INTO volunteers
-        (user_id, tier, latitude, longitude, declaration_signed, declaration_signed_at)
-       VALUES (?,?,?,?,?,NOW())`,
-      [user_id, tier, latitude, longitude, declaration_signed ? 1 : 0]
+        (user_id, tier, general_area, latitude, longitude, declaration_signed, declaration_signed_at)
+       VALUES (?,?,?,?,?,?,NOW())`,
+      [user_id, tier, general_area, latitude, longitude, declaration_signed ? 1 : 0]
     );
     const volunteer_id = result.insertId;
 
@@ -31,11 +31,12 @@ exports.applyVolunteer = async (req, res) => {
       ['first_aid_cert',    first_aid_cert],
     ].filter(([, val]) => val); // only insert if value provided
 
-    for (const [doc_type, file_path] of docs) {
+    for (const [doc_type, doc_number] of docs) {
       await db.query(
-        `INSERT INTO volunteer_documents (volunteer_id, document_type, file_path)
-         VALUES (?,?,?)`,
-        [volunteer_id, doc_type, file_path]
+        `INSERT INTO volunteer_documents
+          (volunteer_id, document_type, document_number, file_path)
+        VALUES (?,?,?,?)`,
+        [volunteer_id, doc_type, doc_number, doc_number]
       );
     }
 
