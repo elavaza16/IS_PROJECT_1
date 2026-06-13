@@ -132,10 +132,10 @@ export default function ActiveAlert() {
                   fontSize: 13, color: 'var(--navy)' }}>
                   <MdLocationOn size={16} color="var(--red)" />
                   {incident.location_text ||
-                    `${incident.latitude?.toFixed(4)}, ${incident.longitude?.toFixed(4)}`}
+                    (incident.latitude ? `${parseFloat(incident.latitude).toFixed(4)}, ${parseFloat(incident.longitude).toFixed(4)}` : '—')}
                 </div>
                 {incident.latitude && (
-                  <a href={`https://www.google.com/maps?q=${incident.latitude},${incident.longitude}`}
+                  <a href={`https://www.google.com/maps?q=${parseFloat(incident.latitude)},${parseFloat(incident.longitude)}`}
                     target="_blank" rel="noreferrer"
                     className="btn btn-secondary btn-sm">
                     Navigate
