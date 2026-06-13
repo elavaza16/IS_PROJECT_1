@@ -16,10 +16,10 @@ export const loginUser     = (data)  => API.post('/auth/login', data);
 export const verifyEmail   = (token) => API.get(`/auth/verify-email?token=${token}`);
 
 // ── Incidents ─────────────────────────────────────────────────
-export const reportIncident = (data)       => API.post('/incidents', data);
-export const getIncidents   = ()           => API.get('/incidents');
-export const getMyIncidents = ()           => API.get('/incidents/mine');
-export const updateStatus   = (id, status) => API.patch(`/incidents/${id}/status`, { status });
+export const reportIncident = (data)         => API.post('/incidents', data);
+export const getIncidents   = ()             => API.get('/incidents');
+export const getMyIncidents = ()             => API.get('/incidents/mine');
+export const updateStatus   = (id, status)   => API.patch(`/incidents/${id}/status`, { status });
 
 // ── Volunteers ────────────────────────────────────────────────
 export const applyVolunteer = (data) => API.post('/volunteers/apply', data);
@@ -32,12 +32,20 @@ export const getMessages = (incidentId) => API.get(`/messages/${incidentId}`);
 export const sendMessage = (data)       => API.post('/messages', data);
 
 // ── Admin ─────────────────────────────────────────────────────
-export const getAllIncidents   = (filters = '') => API.get(`/admin/incidents${filters}`);
-export const getAllVolunteers  = ()             => API.get('/admin/volunteers');
-export const getAllUsers       = ()             => API.get('/admin/users');
-export const approveVolunteer = (id)           => API.patch(`/admin/volunteers/${id}/approve`);
-export const rejectVolunteer  = (id)           => API.patch(`/admin/volunteers/${id}/reject`);
-export const getAnalytics     = ()             => API.get('/admin/analytics');
-export const deactivateUser   = (id)           => API.patch(`/admin/users/${id}/deactivate`);
+export const getAllIncidents    = (query = '')  => API.get(`/admin/incidents${query}`);
+export const getIncident        = (id)          => API.get(`/admin/incidents/${id}`);
+export const flagIncident       = (id, data)    => API.patch(`/admin/incidents/${id}/flag`, data);
+
+export const getAllVolunteers   = (query = '')  => API.get(`/admin/volunteers${query}`);
+export const getVolunteer       = (id)          => API.get(`/admin/volunteers/${id}`);
+export const approveVolunteer   = (id)          => API.patch(`/admin/volunteers/${id}/approve`);
+export const rejectVolunteer    = (id, data)    => API.patch(`/admin/volunteers/${id}/reject`, data);
+export const suspendVolunteer   = (id, data)    => API.patch(`/admin/volunteers/${id}/suspend`, data);
+
+export const getAllUsers        = ()             => API.get('/admin/users');
+export const deactivateUser     = (id)          => API.patch(`/admin/users/${id}/deactivate`);
+export const activateUser       = (id)          => API.patch(`/admin/users/${id}/activate`);
+
+export const getAnalytics       = ()             => API.get('/admin/analytics');
 
 export default API;
