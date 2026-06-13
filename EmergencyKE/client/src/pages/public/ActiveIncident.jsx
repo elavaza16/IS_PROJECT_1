@@ -80,7 +80,7 @@ export default function ActiveIncident() {
                   ['Reference',  incident.reference_number],
                   ['Type',       incident.category?.replace('_',' ')],
                   ['Severity',   incident.severity],
-                  ['Location',   incident.location_text || `${incident.latitude}, ${incident.longitude}`],
+                  ['Location', incident.location_text || (incident.latitude ? `${parseFloat(incident.latitude).toFixed(4)}, ${parseFloat(incident.longitude).toFixed(4)}` : '—')],
                   ['Reported',   new Date(incident.reported_at).toLocaleString()],
                   ['Status',     incident.status],
                 ].map(([label, value]) => (
