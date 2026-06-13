@@ -122,7 +122,7 @@ export default function AdminIncidents() {
                     <td style={{ fontSize: 12, maxWidth: 140,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {i.location_text ||
-                        (i.latitude ? `${i.latitude?.toFixed(3)}, ${i.longitude?.toFixed(3)}` : '—')}
+                        (i.latitude ? `${parseFloat(i.latitude).toFixed(3)}, ${parseFloat(i.longitude).toFixed(3)}` : '—')}
                     </td>
                     <td><Badge status={i.status} /></td>
                     <td style={{ fontSize: 11, textTransform: 'uppercase',
