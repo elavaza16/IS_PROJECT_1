@@ -73,15 +73,19 @@ exports.reportIncident = async (req, res) => {
   }
 };
 
-exports.getIncidents = async (req, res) => {
-  const { status } = req.query;
+exports.getIncident = async (req, res) => {
+  const { id } = req.params;
   try {
-    let query = 'SELECT * FROM incidents WHERE 1=1';
-    const params = [];
-    if (status) { query += ' AND status = ?'; params.push(status); }
-    query += ' ORDER BY reported_at DESC';
-    const [rows] = await db.query(query, params);
-    res.json(rows);
+    const [rows] = await db.query(
+      `SELECT i.*, u.full_name as reporter_name, u.phone as reporter_phone
+       FROM incidents i
+       JOIN users u ON i.reporter_id = u.user_id
+       WHERE i.incident_id = ?`,
+      [id]
+    );
+    if (!rows.length)
+      return res.status(404).json({ error: 'Incident not found.' });
+    res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
