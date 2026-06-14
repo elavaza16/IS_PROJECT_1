@@ -80,7 +80,7 @@ export default function VolunteerDashboard() {
                   <div style={{ fontSize: 12, color: 'var(--muted)', display: 'flex',
                     alignItems: 'center', gap: 4 }}>
                     <MdLocationOn size={13} />
-                    {alert.location_text || `${alert.latitude?.toFixed(4)}, ${alert.longitude?.toFixed(4)}`}
+                    {alert.location_text || (alert.latitude ? `${parseFloat(alert.latitude).toFixed(4)}, ${parseFloat(alert.longitude).toFixed(4)}` : '—')}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
                     {new Date(alert.reported_at).toLocaleTimeString()}
