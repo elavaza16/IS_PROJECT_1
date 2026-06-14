@@ -3,7 +3,7 @@ const { haversine } = require('../utils/haversine');
 const { sendSMS } = require('../utils/sms');
 
 // Generate reference number
-const generateRef = () => `INC-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+const generateRef = () => `INC-${Date.now().toString().slice(-8)}-${Math.floor(Math.random()*100)}`;
 
 exports.reportIncident = async (req, res) => {
   const { category, severity, latitude, longitude, location_text, description, location_source } = req.body;
