@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import {
   MdOutlineEmergency, MdDashboard, MdPeople,
   MdAssignment, MdBarChart, MdLogout,
-  MdNotifications, MdMenu, MdClose,
+  MdMenu, MdClose,
 } from "react-icons/md";
 
 const NAV = {
@@ -14,16 +14,16 @@ const NAV = {
   ],
   volunteer: [
     { label: "Dashboard",        icon: MdDashboard,        path: "/volunteer"           },
-    { label: "Report Emergency", icon: MdOutlineEmergency, path: "/report"     },
+    { label: "Report Emergency", icon: MdOutlineEmergency, path: "/report"              },
     { label: "Active Incidents", icon: MdOutlineEmergency, path: "/volunteer/incidents" },
     { label: "My History",       icon: MdAssignment,       path: "/volunteer/history"   },
   ],
   admin: [
-    { label: "Dashboard",  icon: MdDashboard,  path: "/admin"           },
-    { label: "Incidents",  icon: MdAssignment, path: "/admin/incidents" },
-    { label: "Volunteers", icon: MdPeople,     path: "/admin/volunteers"},
-    { label: "Users",      icon: MdPeople,     path: "/admin/users"     },
-    { label: "Analytics",  icon: MdBarChart,   path: "/admin/analytics" },
+    { label: "Dashboard",  icon: MdDashboard,  path: "/admin"            },
+    { label: "Incidents",  icon: MdAssignment, path: "/admin/incidents"  },
+    { label: "Volunteers", icon: MdPeople,     path: "/admin/volunteers" },
+    { label: "Users",      icon: MdPeople,     path: "/admin/users"      },
+    { label: "Analytics",  icon: MdBarChart,   path: "/admin/analytics"  },
   ],
 };
 
@@ -40,7 +40,6 @@ export default function DashboardLayout({ title, children }) {
 
   const SidebarContent = () => (
     <>
-      {/* Logo */}
       <div className="dash-logo">
         <div className="dash-logo-icon">
           <MdOutlineEmergency size={18} />
@@ -50,11 +49,10 @@ export default function DashboardLayout({ title, children }) {
         </span>
       </div>
 
-      {/* Nav */}
       <nav className="dash-nav">
         {navItems.map(({ label, icon: Icon, path }) => (
           <button key={label}
-            className={`dash-nav-item${location.pathname === path || (path !== '/volunteer' && location.pathname.startsWith(path)) ? " active" : ""}`}
+            className={`dash-nav-item${location.pathname === path ? " active" : ""}`}
             onClick={() => { navigate(path); setOpen(false); }}>
             <Icon size={17} />
             {label}
@@ -62,7 +60,6 @@ export default function DashboardLayout({ title, children }) {
         ))}
       </nav>
 
-      {/* User + logout */}
       <div className="dash-sidebar-footer">
         <div className="dash-user">
           <div className="dash-avatar">{initials}</div>
@@ -83,17 +80,14 @@ export default function DashboardLayout({ title, children }) {
   return (
     <div className="dash-layout">
 
-      {/* Desktop sidebar */}
       <aside className="dash-sidebar">
         <SidebarContent />
       </aside>
 
-      {/* Mobile overlay */}
       {open && (
         <div className="dash-overlay" onClick={() => setOpen(false)} />
       )}
 
-      {/* Mobile drawer */}
       <aside className={`dash-drawer${open ? " open" : ""}`}>
         <button className="dash-drawer-close" onClick={() => setOpen(false)}>
           <MdClose size={22} />
@@ -101,17 +95,14 @@ export default function DashboardLayout({ title, children }) {
         <SidebarContent />
       </aside>
 
-      {/* Main */}
       <main className="dash-main">
         <div className="dash-topbar">
-          {/* Hamburger — mobile only */}
           <button className="dash-hamburger" onClick={() => setOpen(true)}>
             <MdMenu size={24} />
           </button>
           <h1 className="dash-page-title">{title}</h1>
-          <button className="btn btn-ghost" style={{ color: "var(--muted)", fontSize: 22 }}>
-            <MdNotifications size={22} />
-          </button>
+          {/* Bell hidden until notifications are implemented */}
+          <div style={{ width: 40 }} />
         </div>
         <div className="dash-content">
           {children}
