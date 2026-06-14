@@ -39,21 +39,16 @@ exports.reportIncident = async (req, res) => {
     }
 
     if (nearest) {
-      // Create dispatch alert
       await db.query(
         `INSERT INTO dispatch_alerts (incident_id, volunteer_id, radius_km)
          VALUES (?,?,?)`,
         [incidentId, nearest.volunteer_id, Math.ceil(minDist)]
       );
-
-      // Update incident
       await db.query(
         `UPDATE incidents SET assigned_volunteer = ?, status = 'dispatching'
          WHERE incident_id = ?`,
         [nearest.volunteer_id, incidentId]
       );
-
-      // Log it
       await db.query(
         `INSERT INTO incident_logs (incident_id, action, new_value, performed_by)
          VALUES (?, 'dispatched', ?, ?)`,
@@ -73,19 +68,15 @@ exports.reportIncident = async (req, res) => {
   }
 };
 
-exports.getIncident = async (req, res) => {
-  const { id } = req.params;
+exports.getIncidents = async (req, res) => {
+  const { status } = req.query;
   try {
-    const [rows] = await db.query(
-      `SELECT i.*, u.full_name as reporter_name, u.phone as reporter_phone
-       FROM incidents i
-       JOIN users u ON i.reporter_id = u.user_id
-       WHERE i.incident_id = ?`,
-      [id]
-    );
-    if (!rows.length)
-      return res.status(404).json({ error: 'Incident not found.' });
-    res.json(rows[0]);
+    let query = 'SELECT * FROM incidents WHERE 1=1';
+    const params = [];
+    if (status) { query += ' AND status = ?'; params.push(status); }
+    query += ' ORDER BY reported_at DESC';
+    const [rows] = await db.query(query, params);
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -99,6 +90,24 @@ exports.getMyIncidents = async (req, res) => {
       [req.user.id]
     );
     res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getIncident = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await db.query(
+      `SELECT i.*, u.full_name as reporter_name, u.phone as reporter_phone
+       FROM incidents i
+       JOIN users u ON i.reporter_id = u.user_id
+       WHERE i.incident_id = ?`,
+      [id]
+    );
+    if (!rows.length)
+      return res.status(404).json({ error: 'Incident not found.' });
+    res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -144,8 +153,6 @@ exports.respondToAlert = async (req, res) => {
          WHERE incident_id = ?`,
         [id]
       );
-
-      // Open a chat for this incident
       await db.query(
         `INSERT IGNORE INTO chats (incident_id) VALUES (?)`,
         [id]
