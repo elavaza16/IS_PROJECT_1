@@ -128,6 +128,21 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.getMe = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT user_id, full_name, email, phone, role, is_active
+       FROM users WHERE user_id = ?`,
+      [req.user.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found.' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Get me error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 // ── FORGOT PASSWORD ──────────────────────────────────────────
 exports.forgotPassword = async (req, res) => {
