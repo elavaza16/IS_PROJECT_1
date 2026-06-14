@@ -17,7 +17,7 @@ export default function VolunteerDashboard() {
   // Poll for new alerts every 10 seconds
   useEffect(() => {
     const load = () => {
-      API.get('/incidents?assigned=me&status=dispatching')
+      API.get('/incidents?status=dispatching')
         .then(({ data }) => setAlerts(Array.isArray(data) ? data : []))
         .catch(() => {});
     };
