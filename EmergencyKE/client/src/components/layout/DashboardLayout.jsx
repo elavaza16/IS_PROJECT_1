@@ -15,7 +15,7 @@ const NAV = {
   volunteer: [
     { label: "Dashboard",        icon: MdDashboard,        path: "/volunteer"           },
     { label: "Report Emergency", icon: MdOutlineEmergency, path: "/report"     },
-    { label: "Active Incidents", icon: MdOutlineEmergency, path: "/volunteer/incidents" },
+    { label: "Active Incidents", icon: MdOutlineEmergency, path: "/volunteer" },
     { label: "My History",       icon: MdAssignment,       path: "/volunteer/history"   },
   ],
   admin: [
