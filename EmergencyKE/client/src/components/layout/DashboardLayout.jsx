@@ -15,7 +15,7 @@ const NAV = {
   volunteer: [
     { label: "Dashboard",        icon: MdDashboard,        path: "/volunteer"           },
     { label: "Report Emergency", icon: MdOutlineEmergency, path: "/report"     },
-    { label: "Active Incidents", icon: MdOutlineEmergency, path: "/volunteer" },
+    { label: "Active Incidents", icon: MdOutlineEmergency, path: "/volunteer/incidents" },
     { label: "My History",       icon: MdAssignment,       path: "/volunteer/history"   },
   ],
   admin: [
@@ -54,7 +54,7 @@ export default function DashboardLayout({ title, children }) {
       <nav className="dash-nav">
         {navItems.map(({ label, icon: Icon, path }) => (
           <button key={label}
-            className={`dash-nav-item${location.pathname === path ? " active" : ""}`}
+            className={`dash-nav-item${location.pathname === path || (path !== '/volunteer' && location.pathname.startsWith(path)) ? " active" : ""}`}
             onClick={() => { navigate(path); setOpen(false); }}>
             <Icon size={17} />
             {label}
