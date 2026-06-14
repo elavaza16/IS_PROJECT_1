@@ -77,9 +77,10 @@ export default function Login() {
         />
 
         <div style={{ textAlign:"right", marginBottom:16 }}>
-          <button type="button" className="btn btn-ghost">
-            Forgot password?
-          </button>
+        <button type="button" className="btn btn-ghost"
+          onClick={() => navigate('/forgot-password')}>
+          Forgot password?
+        </button>
         </div>
 
         <Button type="submit" variant="primary" loading={loading}>

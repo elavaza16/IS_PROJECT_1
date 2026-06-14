@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt    = require('jsonwebtoken');
 const crypto = require('crypto');
 const { sendVerificationEmail } = require('../utils/email');
+const { sendPasswordResetEmail } = require('../utils/email');
 
 exports.register = async (req, res) => {
   const { full_name, email, phone, password } = req.body;
@@ -123,6 +124,97 @@ exports.login = async (req, res) => {
 
   } catch (err) {
     console.error('Login error:', err);
+    res.status(500).json({ error: 'Server error. Please try again.' });
+  }
+};
+
+
+// ── FORGOT PASSWORD ──────────────────────────────────────────
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required.' });
+
+  try {
+    const [rows] = await db.query(
+      'SELECT user_id FROM users WHERE email = ? AND is_active = 1', [email]
+    );
+
+    // Always return success even if email not found — prevents email enumeration
+    if (!rows.length) {
+      return res.json({ message: 'If that email exists, a reset link has been sent.' });
+    }
+
+    const user_id  = rows[0].user_id;
+    const token    = crypto.randomBytes(32).toString('hex');
+    const expires  = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Invalidate any existing tokens for this user
+    await db.query(
+      'DELETE FROM password_reset_tokens WHERE user_id = ?', [user_id]
+    );
+
+    // Save new token
+    await db.query(
+      `INSERT INTO password_reset_tokens (user_id, token, expires_at)
+       VALUES (?,?,?)`,
+      [user_id, token, expires]
+    );
+
+    // Send email
+    await sendPasswordResetEmail(email, token);
+
+    res.json({ message: 'If that email exists, a reset link has been sent.' });
+
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Server error. Please try again.' });
+  }
+};
+
+// ── RESET PASSWORD ───────────────────────────────────────────
+exports.resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password)
+    return res.status(400).json({ error: 'Token and password are required.' });
+  if (password.length < 8)
+    return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+
+  try {
+    const [rows] = await db.query(
+      `SELECT prt.*, u.user_id
+       FROM password_reset_tokens prt
+       JOIN users u ON prt.user_id = u.user_id
+       WHERE prt.token = ? AND prt.used_at IS NULL`,
+      [token]
+    );
+
+    if (!rows.length)
+      return res.status(400).json({ error: 'Invalid or already used reset link.' });
+
+    const record = rows[0];
+
+    if (new Date() > new Date(record.expires_at))
+      return res.status(400).json({ error: 'Reset link has expired. Please request a new one.' });
+
+    // Hash new password
+    const password_hash = await bcrypt.hash(password, 12);
+
+    // Update password
+    await db.query(
+      'UPDATE users SET password_hash = ? WHERE user_id = ?',
+      [password_hash, record.user_id]
+    );
+
+    // Mark token as used
+    await db.query(
+      'UPDATE password_reset_tokens SET used_at = NOW() WHERE token = ?',
+      [token]
+    );
+
+    res.json({ message: 'Password reset successfully. You can now log in.' });
+
+  } catch (err) {
+    console.error('Reset password error:', err);
     res.status(500).json({ error: 'Server error. Please try again.' });
   }
 };

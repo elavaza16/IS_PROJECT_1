@@ -48,4 +48,9 @@ export const activateUser       = (id)          => API.patch(`/admin/users/${id}
 
 export const getAnalytics       = ()             => API.get('/admin/analytics');
 
+
+
+export const forgotPassword = (data)  => API.post('/auth/forgot-password', data);
+export const resetPassword  = (data)  => API.post('/auth/reset-password', data);
+
 export default API;

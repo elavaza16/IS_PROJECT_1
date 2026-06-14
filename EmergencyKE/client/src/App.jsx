@@ -27,6 +27,9 @@ import AdminIncidents from "./pages/admin/AdminIncidents";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword  from './pages/auth/ResetPassword';
+
 export default function App() {
   return (
     <AuthProvider>
@@ -36,6 +39,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password"  element={<ResetPassword />} />
 
           {/* ── Community member ── */}
           <Route
