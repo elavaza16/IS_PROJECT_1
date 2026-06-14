@@ -19,36 +19,23 @@ exports.getVolunteers = async (req, res) => {
 };
 
 // Get single volunteer with all documents
-exports.getVolunteer = async (req, res) => {
-  const { id } = req.params;
+exports.getVolunteers = async (req, res) => {
   try {
-    const [volunteer] = await db.query(
-      `SELECT v.*, u.full_name, u.email, u.phone, u.created_at as registered_at
-       FROM volunteers v
-       JOIN users u ON v.user_id = u.user_id
-       WHERE v.volunteer_id = ?`,
-      [id]
-    );
-    if (!volunteer.length)
-      return res.status(404).json({ error: 'Volunteer not found.' });
+    const { status } = req.query;
+    let query = 'SELECT * FROM volunteer_document_status';
+    const params = [];
 
-    const [documents] = await db.query(
-      `SELECT * FROM volunteer_documents WHERE volunteer_id = ?`,
-      [id]
-    );
+    if (status) {
+      query += ' WHERE status = ?';
+      params.push(status);
+    }
 
-    const [logs] = await db.query(
-      `SELECT vsl.*, u.full_name as changed_by_name
-       FROM volunteer_status_log vsl
-       JOIN users u ON vsl.changed_by = u.user_id
-       WHERE vsl.volunteer_id = ?
-       ORDER BY vsl.created_at DESC`,
-      [id]
-    );
+    query += ' ORDER BY volunteer_id DESC';
 
-    res.json({ ...volunteer[0], documents, logs });
+    const [rows] = await db.query(query, params);
+    res.json(rows);
   } catch (err) {
-    console.error('Get volunteer error:', err);
+    console.error('Get volunteers error:', err);
     res.status(500).json({ error: err.message });
   }
 };
