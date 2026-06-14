@@ -1,17 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MdOutlineEmergency, MdLocationOn, MdWarning } from "react-icons/md";
+import {
+  MdOutlineEmergency,
+  MdLocationOn,
+  MdWarning,
+  MdLocalHospital,
+  MdDirectionsCar,
+  MdLocalFireDepartment,
+  MdSecurity,
+} from "react-icons/md";
 import { reportIncident } from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
 
 const CATEGORIES = [
-  { value: 'medical_distress', label: '🏥 Medical Emergency',   color: '#ef4444' },
-  { value: 'road_accident',    label: '🚗 Road Accident',        color: '#f97316' },
-  { value: 'fire_hazard',      label: '🔥 Fire Hazard',          color: '#dc2626' },
-  { value: 'security_threat',  label: '🚨 Security Threat',      color: '#7c3aed' },
-  { value: 'other',            label: '⚠️ Other Emergency',      color: '#6b7280' },
+  { value: 'medical_distress', label: 'Medical Emergency', color: '#ef4444', Icon: MdLocalHospital },
+  { value: 'road_accident', label: 'Road Accident', color: '#f97316', Icon: MdDirectionsCar },
+  { value: 'fire_hazard', label: 'Fire Hazard', color: '#dc2626', Icon: MdLocalFireDepartment },
+  { value: 'security_threat', label: 'Security Threat', color: '#7c3aed', Icon: MdSecurity },
+  { value: 'other', label: 'Other Emergency', color: '#6b7280', Icon: MdWarning },
 ];
 
 export default function ReportEmergency() {
@@ -24,6 +32,7 @@ export default function ReportEmergency() {
   const [loading,  setLoading]  = useState(false);
   const [locating, setLocating] = useState(false);
   const [err,      setErr]      = useState('');
+  const selectedCategory = CATEGORIES.find(c => c.value === form.category);
 
   const getLocation = () => {
     setLocating(true);
@@ -101,7 +110,10 @@ export default function ReportEmergency() {
                     cursor: 'pointer', transition: 'all 0.15s',
                   }}
                   onClick={() => { setForm(f => ({...f, category: cat.value})); setStep(2); }}>
-                  {cat.label}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <cat.Icon size={18} />
+                    {cat.label}
+                  </span>
                 </button>
               ))}
             </div>
@@ -167,7 +179,12 @@ export default function ReportEmergency() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ fontSize: 12, color: 'var(--muted)' }}>Emergency type</span>
                 <span style={{ fontSize: 13, fontWeight: 600 }}>
-                  {CATEGORIES.find(c => c.value === form.category)?.label}
+                  {selectedCategory && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <selectedCategory.Icon size={15} />
+                      {selectedCategory.label}
+                    </span>
+                  )}
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
