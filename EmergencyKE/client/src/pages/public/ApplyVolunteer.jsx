@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MdLocationOn, MdUploadFile } from "react-icons/md";
+import { MdLocationOn, MdBadge, MdDirectionsCar, MdLocalHospital } from "react-icons/md";
 import { applyVolunteer } from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Button from "../../components/ui/Button";
@@ -27,6 +27,9 @@ export default function ApplyVolunteer() {
 
   const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
+  const isDriver      = form.tier === 'driver' || form.tier === 'both';
+  const isResponder   = form.tier === 'first_responder' || form.tier === 'both';
+
   const getLocation = () => {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
@@ -43,16 +46,17 @@ export default function ApplyVolunteer() {
   };
 
   const validate = () => {
-    if (!form.tier)               return 'Please select your volunteer tier.';
-    if (!form.national_id.trim()) return 'National ID number is required.';
+    if (!form.tier)                return 'Please select your volunteer tier.';
+    if (!form.national_id.trim())  return 'National ID number is required.';
     if (!form.general_area.trim()) return 'General area is required.';
-    if (form.tier !== 'first_responder') {
+    if (isResponder && !form.first_aid_cert.trim())
+      return 'First aid certificate number is required.';
+    if (isDriver) {
       if (!form.drivers_licence.trim())   return "Driver's licence number is required.";
       if (!form.number_plate.trim())      return 'Vehicle number plate is required.';
       if (!form.vehicle_insurance.trim()) return 'Vehicle insurance number is required.';
     }
-    if (!form.first_aid_cert.trim()) return 'First aid certificate number is required.';
-    if (!form.declaration_signed)    return 'You must agree to the declaration.';
+    if (!form.declaration_signed) return 'You must agree to the declaration.';
     return null;
   };
 
@@ -60,7 +64,6 @@ export default function ApplyVolunteer() {
     e.preventDefault();
     const error = validate();
     if (error) { setErr(error); return; }
-
     setLoading(true);
     try {
       await applyVolunteer(form);
@@ -71,7 +74,6 @@ export default function ApplyVolunteer() {
     }
   };
 
-  // Show success screen after applying
   if (ok) return (
     <DashboardLayout title="Application Submitted">
       <div style={{ maxWidth: 520, margin: '0 auto' }}>
@@ -80,7 +82,9 @@ export default function ApplyVolunteer() {
           background: 'var(--grey-lt)', borderRadius: 'var(--radius-md)',
           padding: 20, marginBottom: 20,
         }}>
-          <p style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>What happens next?</p>
+          <p style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>
+            What happens next?
+          </p>
           <ol style={{ paddingLeft: 20, fontSize: 13, color: 'var(--muted)', lineHeight: 2 }}>
             <li>An admin will review your application and documents</li>
             <li>You will be notified once approved or rejected</li>
@@ -105,7 +109,7 @@ export default function ApplyVolunteer() {
           padding: '12px 14px', marginBottom: 24, fontSize: 13, color: '#1A5276',
         }}>
           <strong>Note:</strong> Your application will be reviewed by an admin before
-          activation. Please provide accurate information — false details will result in rejection.
+          activation. Please provide accurate information. False details will result in rejection.
         </div>
 
         {err && <Alert type="error">{err}</Alert>}
@@ -114,16 +118,34 @@ export default function ApplyVolunteer() {
 
           {/* Tier */}
           <div className="field">
-            <label className="field-label">Volunteer Tier <span style={{ color: 'var(--red)' }}>*</span></label>
+            <label className="field-label">
+              Volunteer Tier <span style={{ color: 'var(--red)' }}>*</span>
+            </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[
-                { value: 'first_responder', label: 'First Responder', desc: 'Provide first aid at the scene — no vehicle required' },
-                { value: 'driver',          label: 'Driver',           desc: 'Transport victims to hospital using your vehicle' },
-                { value: 'both',            label: 'Both',             desc: 'Provide first aid and transport victims' },
+                {
+                  value: 'first_responder',
+                  label: 'First Responder',
+                  desc:  'Provide first aid at the scene. No vehicle required.',
+                  icon:  MdLocalHospital,
+                },
+                {
+                  value: 'driver',
+                  label: 'Driver',
+                  desc:  'Transport victims to hospital using your vehicle.',
+                  icon:  MdDirectionsCar,
+                },
+                {
+                  value: 'both',
+                  label: 'Both',
+                  desc:  'Provide first aid and transport victims.',
+                  icon:  MdLocalHospital,
+                },
               ].map(t => (
                 <button key={t.value} type="button"
                   style={{
-                    padding: '12px 14px', borderRadius: 'var(--radius-md)', textAlign: 'left',
+                    padding: '12px 14px', borderRadius: 'var(--radius-md)',
+                    textAlign: 'left',
                     border: `2px solid ${form.tier === t.value ? 'var(--green)' : 'var(--line)'}`,
                     background: form.tier === t.value ? 'var(--green-xlt)' : 'var(--white)',
                     cursor: 'pointer',
@@ -141,40 +163,41 @@ export default function ApplyVolunteer() {
             </div>
           </div>
 
-          {/* Divider */}
+          {/* Personal Information */}
           <div style={{ borderTop: '1px solid var(--line)', margin: '20px 0',
             paddingTop: 20, fontWeight: 700, fontSize: 14, color: 'var(--navy)' }}>
             Personal Information
           </div>
 
-          {/* National ID */}
           <div className="field">
             <label className="field-label">
               National ID Number <span style={{ color: 'var(--red)' }}>*</span>
             </label>
             <div className="input-wrap">
-              <span className="input-icon"><MdUploadFile size={15} /></span>
+              <span className="input-icon"><MdBadge size={15} /></span>
               <input name="national_id" type="text"
                 placeholder="e.g. 12345678"
                 value={form.national_id} onChange={handle} />
             </div>
           </div>
 
-          {/* First aid cert */}
-          <div className="field">
-            <label className="field-label">
-              First Aid Certificate Number <span style={{ color: 'var(--red)' }}>*</span>
-            </label>
-            <div className="input-wrap">
-              <span className="input-icon"><MdUploadFile size={15} /></span>
-              <input name="first_aid_cert" type="text"
-                placeholder="e.g. FAC-2024-001234"
-                value={form.first_aid_cert} onChange={handle} />
+          {/* First aid cert — First Responder and Both only */}
+          {isResponder && (
+            <div className="field">
+              <label className="field-label">
+                First Aid Certificate Number <span style={{ color: 'var(--red)' }}>*</span>
+              </label>
+              <div className="input-wrap">
+                <span className="input-icon"><MdLocalHospital size={15} /></span>
+                <input name="first_aid_cert" type="text"
+                  placeholder="e.g. FAC2024001234"
+                  value={form.first_aid_cert} onChange={handle} />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Vehicle fields — only for driver and both */}
-          {(form.tier === 'driver' || form.tier === 'both') && (
+          {/* Vehicle fields — Driver and Both only */}
+          {isDriver && (
             <>
               <div style={{ borderTop: '1px solid var(--line)', margin: '20px 0',
                 paddingTop: 20, fontWeight: 700, fontSize: 14, color: 'var(--navy)' }}>
@@ -186,9 +209,9 @@ export default function ApplyVolunteer() {
                   Driver's Licence Number <span style={{ color: 'var(--red)' }}>*</span>
                 </label>
                 <div className="input-wrap">
-                  <span className="input-icon"><MdUploadFile size={15} /></span>
+                  <span className="input-icon"><MdDirectionsCar size={15} /></span>
                   <input name="drivers_licence" type="text"
-                    placeholder="e.g. DL-123456"
+                    placeholder="e.g. DL123456"
                     value={form.drivers_licence} onChange={handle} />
                 </div>
               </div>
@@ -198,7 +221,7 @@ export default function ApplyVolunteer() {
                   Vehicle Number Plate <span style={{ color: 'var(--red)' }}>*</span>
                 </label>
                 <div className="input-wrap">
-                  <span className="input-icon"><MdUploadFile size={15} /></span>
+                  <span className="input-icon"><MdDirectionsCar size={15} /></span>
                   <input name="number_plate" type="text"
                     placeholder="e.g. KCA 123A"
                     value={form.number_plate} onChange={handle} />
@@ -210,9 +233,9 @@ export default function ApplyVolunteer() {
                   Vehicle Insurance Number <span style={{ color: 'var(--red)' }}>*</span>
                 </label>
                 <div className="input-wrap">
-                  <span className="input-icon"><MdUploadFile size={15} /></span>
+                  <span className="input-icon"><MdDirectionsCar size={15} /></span>
                   <input name="vehicle_insurance" type="text"
-                    placeholder="e.g. INS-2024-987654"
+                    placeholder="e.g. INS2024987654"
                     value={form.vehicle_insurance} onChange={handle} />
                 </div>
               </div>
@@ -238,7 +261,10 @@ export default function ApplyVolunteer() {
           </div>
 
           <div className="field">
-            <label className="field-label">GPS Location (for proximity matching)</label>
+            <label className="field-label">
+              GPS Location
+              <span className="field-hint">for proximity matching</span>
+            </label>
             <Button variant="secondary" loading={locating}
               onClick={getLocation} type="button">
               <MdLocationOn size={16} />
@@ -258,10 +284,12 @@ export default function ApplyVolunteer() {
               background: 'var(--grey-lt)', borderRadius: 'var(--radius-md)',
               padding: 16, marginBottom: 16,
             }}>
-              <p style={{ fontSize: 13, color: 'var(--navy)', lineHeight: 1.7, marginBottom: 12 }}>
+              <p style={{ fontSize: 13, color: 'var(--navy)', lineHeight: 1.7,
+                marginBottom: 12 }}>
                 I declare that:
               </p>
-              <ul style={{ paddingLeft: 20, fontSize: 13, color: 'var(--muted)', lineHeight: 2 }}>
+              <ul style={{ paddingLeft: 20, fontSize: 13, color: 'var(--muted)',
+                lineHeight: 2 }}>
                 <li>All information provided above is true and accurate</li>
                 <li>I am willing and physically able to respond to emergency alerts</li>
                 <li>I understand my role as a community volunteer first responder</li>

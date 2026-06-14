@@ -40,7 +40,7 @@ export default function Login() {
       }, 600);
     } catch (err) {
       const message = err.response?.data?.error;
-      if (message?.includes("verify your email")) setUnverified(true);
+      if (message?.includes("Verify your email")) setUnverified(true);
       else setErr(message || "Login failed.");
       setLoading(false);
     }
@@ -89,14 +89,13 @@ export default function Login() {
       </form>
 
       <div className="auth-divider">
-        <div className="auth-divider-line" />
         <span className="auth-divider-text">No internet access?</span>
-        <div className="auth-divider-line" />
+        
       </div>
 
       <div className="auth-ussd">
-        <p className="auth-ussd-title">Dial <strong>*384*911#</strong> to report</p>
-        <p className="auth-ussd-sub">Free · Any phone · All Kenyan networks</p>
+        <p className="auth-ussd-title">Dial <strong>#####</strong> to report</p>
+        <p className="auth-ussd-sub">Any phone · All Kenyan networks</p>
       </div>
 
       <p className="auth-footer">
