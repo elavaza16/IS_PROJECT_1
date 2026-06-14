@@ -53,7 +53,7 @@ export default function DashboardLayout({ title, children }) {
       {/* Nav */}
       <nav className="dash-nav">
         {navItems.map(({ label, icon: Icon, path }) => (
-          <button key={path}
+          <button key={label}
             className={`dash-nav-item${location.pathname === path ? " active" : ""}`}
             onClick={() => { navigate(path); setOpen(false); }}>
             <Icon size={17} />
