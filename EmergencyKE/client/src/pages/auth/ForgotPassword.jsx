@@ -1,90 +1,72 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { MdLock } from "react-icons/md";
-import { resetPassword } from "../../services/api";
+import { useNavigate } from "react-router-dom";
+import { MdEmail } from "react-icons/md";
+import { forgotPassword } from "../../services/api";
 import AuthCard from "../../components/layout/AuthCard";
 import InputField from "../../components/ui/InputField";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
 
-export default function ResetPassword() {
-  const navigate       = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token          = searchParams.get('token');
-
-  const [form,    setForm]    = useState({ password: '', confirm: '' });
+export default function ForgotPassword() {
+  const navigate = useNavigate();
+  const [email,   setEmail]   = useState('');
   const [loading, setLoading] = useState(false);
   const [err,     setErr]     = useState('');
   const [done,    setDone]    = useState(false);
 
-  const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
   const submit = async (e) => {
     e.preventDefault();
-    if (form.password.length < 8)
-      return setErr('Password must be at least 8 characters.');
-    if (form.password !== form.confirm)
-      return setErr('Passwords do not match.');
-    if (!token)
-      return setErr('Invalid reset link. Please request a new one.');
-
+    if (!email.includes('@')) return setErr('Enter a valid email address.');
     setLoading(true);
     try {
-      await resetPassword({ token, password: form.password });
+      await forgotPassword({ email });
       setDone(true);
-      setTimeout(() => navigate('/login', {
-        state: { message: 'Password reset successfully. Please log in.' }
-      }), 2500);
-    } catch (err) {
-      setErr(err.response?.data?.error || 'Reset failed. Please try again.');
+    } catch {
+      setErr('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!token) return (
-    <AuthCard subtitle="Invalid link">
-      <Alert type="error">
-        This reset link is invalid or has expired.
+  if (done) return (
+    <AuthCard subtitle="Check your email">
+      <Alert type="success">
+        If that email is registered you will receive a reset link shortly.
+        Check your spam folder if you do not see it.
       </Alert>
-      <Button variant="primary" onClick={() => navigate('/forgot-password')}>
-        Request a new link
+      <Button variant="primary" onClick={() => navigate('/login')}>
+        Back to Login
       </Button>
     </AuthCard>
   );
 
-  if (done) return (
-    <AuthCard subtitle="Password reset">
-      <Alert type="success">
-        Password reset successfully. Redirecting to login…
-      </Alert>
-    </AuthCard>
-  );
-
   return (
-    <AuthCard subtitle="Set a new password">
+    <AuthCard subtitle="Reset your password">
+      <Alert type="info">
+        Enter your registered email address and we will send you a password reset link.
+      </Alert>
 
       {err && <Alert type="error">{err}</Alert>}
 
       <form onSubmit={submit} noValidate>
         <InputField
-          id="password" label="New Password" type="password"
-          placeholder="Min. 8 characters" icon={MdLock}
-          value={form.password} onChange={handle}
-          autoComplete="new-password" showStrength autoFocus
-        />
-        <InputField
-          id="confirm" label="Confirm Password" type="password"
-          placeholder="Repeat your password" icon={MdLock}
-          value={form.confirm} onChange={handle}
-          autoComplete="new-password"
-          confirmValue={form.password}
+          id="email" label="Email address" type="email"
+          placeholder="you@example.com" icon={MdEmail}
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          autoComplete="email" autoFocus
         />
         <Button type="submit" variant="primary" loading={loading}>
-          Reset Password
+          Send Reset Link
         </Button>
       </form>
 
+      <p className="auth-footer" style={{ marginTop: 16 }}>
+        Remember your password?{' '}
+        <button className="btn btn-ghost" onClick={() => navigate('/login')}>
+          Sign in
+        </button>
+      </p>
     </AuthCard>
   );
 }
