@@ -18,6 +18,7 @@ import MyReports from "./pages/public/MyReports";
 import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
 import ActiveAlert from "./pages/volunteer/ActiveAlert";
 import ResponseHistory from "./pages/volunteer/ResponseHistory";
+import VolunteerIncidents from './pages/volunteer/VolunteerIncidents';
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -106,6 +107,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={["volunteer"]}>
                 <ResponseHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/volunteer/incidents"
+            element={
+              <ProtectedRoute roles={["volunteer"]}>
+                <VolunteerIncidents />
               </ProtectedRoute>
             }
           />

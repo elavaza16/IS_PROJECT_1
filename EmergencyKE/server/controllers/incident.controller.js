@@ -74,10 +74,13 @@ exports.reportIncident = async (req, res) => {
 };
 
 exports.getIncidents = async (req, res) => {
+  const { status } = req.query;
   try {
-    const [rows] = await db.query(
-      'SELECT * FROM incidents ORDER BY reported_at DESC'
-    );
+    let query = 'SELECT * FROM incidents WHERE 1=1';
+    const params = [];
+    if (status) { query += ' AND status = ?'; params.push(status); }
+    query += ' ORDER BY reported_at DESC';
+    const [rows] = await db.query(query, params);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
