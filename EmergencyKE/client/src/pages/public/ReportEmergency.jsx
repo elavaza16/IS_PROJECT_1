@@ -13,7 +13,6 @@ import { reportIncident } from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
-import LocationMap from "../../components/LocationMap";
 
 const CATEGORIES = [
   { value: 'medical_distress', label: 'Medical Emergency', color: '#ef4444', Icon: MdLocalHospital },
@@ -122,71 +121,51 @@ export default function ReportEmergency() {
         )}
 
         {/* Step 2 — Location */}
-      {step === 2 && (
-        <div>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: 'var(--navy)' }}>
-            Where is the emergency?
-          </h3>
+        {step === 2 && (
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: 'var(--navy)' }}>
+              Where is the emergency?
+            </h3>
+            <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>
+              Share your GPS location for faster response, or describe the location manually.
+            </p>
 
-          <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>
-            We will detect your location automatically or you can adjust it on the map.
-          </p>
-
-          {/* 🗺️ MAP ADDED HERE */}
-          <div style={{ marginBottom: 16 }}>
-            <LocationMap
-              onLocationFound={(coords) => {
-                setForm(f => ({
-                  ...f,
-                  latitude: coords.lat,
-                  longitude: coords.lng,
-                  location_source: "gps",
-                }));
-              }}
-            />
-          </div>
-
-          {/* Manual fallback */}
-          <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 12, margin: '12px 0' }}>
-            — or describe manually —
-          </div>
-
-          <div className="field">
-            <label className="field-label">Location description</label>
-            <div className="input-wrap">
-              <span className="input-icon"><MdLocationOn size={15} /></span>
-              <input
-                type="text"
-                placeholder="e.g. Near Kencom, Nairobi CBD"
-                value={form.location_text}
-                onChange={e => setForm(f => ({
-                  ...f,
-                  location_text: e.target.value,
-                  location_source: 'manual'
-                }))}
-              />
-            </div>
-          </div>
-
-          {form.latitude && form.longitude && (
-            <Button
-              variant="primary"
-              onClick={() => setStep(3)}
-              style={{ marginTop: 12 }}
-            >
-              Continue →
+            <Button variant="primary" loading={locating} onClick={getLocation}
+              style={{ marginBottom: 16 }}>
+              <MdLocationOn size={18} /> Use my current location (GPS)
             </Button>
-          )}
 
-          <button
-            className="btn btn-ghost"
-            style={{ marginTop: 12, display: 'block' }}
-            onClick={() => setStep(1)}
-          >
-            ← Back
-          </button>
-        </div>
-      )}
+            <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 12,
+              margin: '12px 0' }}>— or describe manually —</div>
+
+            <div className="field">
+              <label className="field-label">Location description</label>
+              <div className="input-wrap">
+                <span className="input-icon"><MdLocationOn size={15} /></span>
+                <input
+                  type="text"
+                  placeholder="e.g. Near Kencom, Nairobi CBD"
+                  value={form.location_text}
+                  onChange={e => setForm(f => ({
+                    ...f, location_text: e.target.value, location_source: 'manual'
+                  }))}
+                />
+              </div>
+            </div>
+
+            {form.location_text && (
+              <Button variant="primary" onClick={() => setStep(3)}
+                style={{ marginTop: 12 }}>
+                Continue →
+              </Button>
+            )}
+
+            <button className="btn btn-ghost" style={{ marginTop: 12, display: 'block' }}
+              onClick={() => setStep(1)}>
+              ← Back
+            </button>
+          </div>
+        )}
 
         {/* Step 3 — Confirm */}
         {step === 3 && (
