@@ -21,6 +21,48 @@ exports.reportIncident = async (req, res) => {
     );
     const incidentId = result.insertId;
 
+    // ── Duplicate detection ───────────────────────────────────
+    // Check for same category within 500m and last 10 minutes
+    let parentIncidentId = null;
+    if (latitude && longitude) {
+      const [nearby] = await db.query(
+        `SELECT incident_id FROM incidents
+         WHERE category = ?
+         AND incident_id != ?
+         AND status NOT IN ('resolved', 'cancelled')
+         AND reported_at >= DATE_SUB(NOW(), INTERVAL 10 MINUTE)
+         AND latitude IS NOT NULL
+         AND (
+           6371 * ACOS(
+             COS(RADIANS(?)) * COS(RADIANS(latitude)) *
+             COS(RADIANS(longitude) - RADIANS(?)) +
+             SIN(RADIANS(?)) * SIN(RADIANS(latitude))
+           )
+         ) < 0.5
+         ORDER BY reported_at ASC
+         LIMIT 1`,
+        [category, incidentId, latitude, longitude, latitude]
+      );
+
+      if (nearby.length > 0) {
+        parentIncidentId = nearby[0].incident_id;
+        await db.query(
+          `UPDATE incidents
+           SET parent_incident_id = ?,
+               reporter_count = reporter_count + 1
+           WHERE incident_id = ?`,
+          [parentIncidentId, incidentId]
+        );
+        await db.query(
+          `UPDATE incidents
+           SET reporter_count = reporter_count + 1
+           WHERE incident_id = ?`,
+          [parentIncidentId]
+        );
+      }
+    }
+    // ── End duplicate detection ───────────────────────────────
+
     // Find nearest approved active volunteer excluding reporter
     const [volunteers] = await db.query(
       `SELECT v.volunteer_id, v.latitude, v.longitude, u.phone, u.full_name
@@ -61,7 +103,10 @@ exports.reportIncident = async (req, res) => {
       incident_id: incidentId,
       reference_number,
       volunteer_assigned: !!nearest,
+      is_duplicate: !!parentIncidentId,
+      parent_incident_id: parentIncidentId,
     });
+
   } catch (err) {
     console.error('Report incident error:', err);
     res.status(500).json({ error: 'Server error. Please try again.' });
