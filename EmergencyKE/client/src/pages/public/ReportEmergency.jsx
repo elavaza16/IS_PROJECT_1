@@ -136,7 +136,7 @@ export default function ReportEmergency() {
             </Button>
 
             <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 12,
-              margin: '12px 0' }}>— or describe manually —</div>
+              margin: '12px 0' }}> or describe manually </div>
 
             <div className="field">
               <label className="field-label">Location description</label>
