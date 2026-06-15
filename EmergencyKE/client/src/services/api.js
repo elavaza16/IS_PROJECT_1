@@ -14,28 +14,28 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// ── Auth ──────────────────────────────────────────────────────
+//Auth
 export const registerUser  = (data)  => API.post('/auth/register', data);
 export const loginUser     = (data)  => API.post('/auth/login', data);
 export const verifyEmail   = (token) => API.get(`/auth/verify-email?token=${token}`);
 
-// ── Incidents ─────────────────────────────────────────────────
+//Incidents 
 export const reportIncident = (data)         => API.post('/incidents', data);
 export const getIncidents   = ()             => API.get('/incidents');
 export const getMyIncidents = ()             => API.get('/incidents/mine');
 export const updateStatus   = (id, status)   => API.patch(`/incidents/${id}/status`, { status });
 
-// ── Volunteers ────────────────────────────────────────────────
+//Volunteers 
 export const applyVolunteer = (data) => API.post('/volunteers/apply', data);
 export const acceptAlert    = (id)   => API.patch(`/incidents/${id}/respond`, { response: 'accepted' });
 export const declineAlert   = (id)   => API.patch(`/incidents/${id}/respond`, { response: 'declined' });
 export const getMyResponses = ()     => API.get('/volunteers/history');
 
-// ── Messages ──────────────────────────────────────────────────
+//Messages
 export const getMessages = (incidentId) => API.get(`/messages/${incidentId}`);
 export const sendMessage = (data)       => API.post('/messages', data);
 
-// ── Admin ─────────────────────────────────────────────────────
+//Admin
 export const getAllIncidents    = (query = '')  => API.get(`/admin/incidents${query}`);
 export const getIncident        = (id)          => API.get(`/admin/incidents/${id}`);
 export const flagIncident       = (id, data)    => API.patch(`/admin/incidents/${id}/flag`, data);
