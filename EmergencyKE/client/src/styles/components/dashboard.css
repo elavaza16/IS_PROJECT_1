@@ -332,7 +332,7 @@ tbody tr:last-child td {
     display: flex;
   }
   .stat-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
   .public-active-banner {
     flex-direction: column;

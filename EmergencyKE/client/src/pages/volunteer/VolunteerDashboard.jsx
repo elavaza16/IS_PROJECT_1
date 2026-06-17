@@ -90,30 +90,44 @@ export default function VolunteerDashboard() {
 
       {/* Incoming alerts */}
       {alerts.length > 0 && (
-        <div className="table-card" style={{ marginTop: 24 }}>
-          <div className="table-header">
-            <span className="table-title">🚨 Incoming Alerts</span>
-            <span style={{ fontSize: 12, color: 'var(--muted)' }}>Updates every 10 seconds</span>
+        <div style={{ marginTop: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>
+              Incoming Alerts
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+              Updates every 10 s
+            </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {alerts.map(alert => (
-              <div key={alert.incident_id}
-                style={{ padding: '14px 16px', borderBottom: '1px solid var(--line)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  background: '#fff9f9' }}>
-                <div style={{ minWidth: 0, flex: 1, marginRight: 12 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--red)',
-                    marginBottom: 4 }}>
-                    {alert.category?.replace('_',' ')}
+              <div key={alert.incident_id} style={{
+                background: '#fff',
+                border: '1px solid var(--line)',
+                borderLeft: '3px solid var(--red)',
+                borderRadius: 'var(--radius-md)',
+                padding: '12px 14px',
+                display: 'flex', alignItems: 'center',
+                justifyContent: 'space-between', gap: 12,
+              }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 13,
+                    color: 'var(--navy)', marginBottom: 3, textTransform: 'capitalize' }}>
+                    {alert.category?.replace('_', ' ')}
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)', display: 'flex',
-                    alignItems: 'center', gap: 4, overflow: 'hidden' }}>
-                    <MdLocationOn size={13} style={{ flexShrink: 0 }} />
+                  <div style={{ fontSize: 11, color: 'var(--muted)',
+                    display: 'flex', alignItems: 'center', gap: 3,
+                    overflow: 'hidden' }}>
+                    <MdLocationOn size={11} style={{ flexShrink: 0 }} />
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {alert.location_text || (alert.latitude ? `${parseFloat(alert.latitude).toFixed(4)}, ${parseFloat(alert.longitude).toFixed(4)}` : '—')}
+                      {alert.location_text ||
+                        (alert.latitude
+                          ? `${parseFloat(alert.latitude).toFixed(4)}, ${parseFloat(alert.longitude).toFixed(4)}`
+                          : '—')}
                     </span>
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
+                  <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>
                     {new Date(alert.reported_at).toLocaleTimeString()}
                   </div>
                 </div>
@@ -129,71 +143,79 @@ export default function VolunteerDashboard() {
 
       {/* Active incidents */}
       {active.length > 0 && (
-        <div className="table-card" style={{ marginTop: 24 }}>
-          <div className="table-header">
-            <span className="table-title">Active Incidents</span>
+        <div style={{ marginTop: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>
+              Active Incidents
+            </span>
+            <button className="btn btn-ghost btn-sm"
+              onClick={() => navigate('/volunteer/incidents')}>
+              View all
+            </button>
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ minWidth: 420 }}>
-              <thead>
-                <tr>
-                  <th>Reference</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {active.map(i => (
-                  <tr key={i.incident_id}>
-                    <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{i.reference_number}</td>
-                    <td>{i.category?.replace('_',' ')}</td>
-                    <td><Badge status={i.status} /></td>
-                    <td>
-                      <button className="btn btn-ghost btn-sm"
-                        onClick={() => navigate(`/volunteer/alert/${i.incident_id}`)}>
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {active.map(i => (
+              <div key={i.incident_id} style={{
+                background: '#fff', border: '1px solid var(--line)',
+                borderRadius: 'var(--radius-md)', padding: '12px 14px',
+                display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13,
+                    textTransform: 'capitalize', color: 'var(--navy)', marginBottom: 2 }}>
+                    {i.category?.replace('_', ' ')}
+                  </div>
+                  <div style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--muted)' }}>
+                    {i.reference_number}
+                  </div>
+                </div>
+                <Badge status={i.status} />
+                <button className="btn btn-ghost btn-sm"
+                  onClick={() => navigate(`/volunteer/alert/${i.incident_id}`)}>
+                  View →
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {/* Recent history */}
       {history.length > 0 && (
-        <div className="table-card" style={{ marginTop: 24 }}>
-          <div className="table-header">
-            <span className="table-title">Response History</span>
+        <div style={{ marginTop: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>
+              Recent Responses
+            </span>
             <button className="btn btn-ghost btn-sm"
               onClick={() => navigate('/volunteer/history')}>
               View all
             </button>
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ minWidth: 440 }}>
-              <thead>
-                <tr>
-                  <th>Reference</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.slice(0,5).map(i => (
-                  <tr key={i.incident_id}>
-                    <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{i.reference_number}</td>
-                    <td>{i.category?.replace('_',' ')}</td>
-                    <td><Badge status={i.status} /></td>
-                    <td>{new Date(i.reported_at).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {history.slice(0, 5).map(i => (
+              <div key={i.incident_id} style={{
+                background: '#fff', border: '1px solid var(--line)',
+                borderRadius: 'var(--radius-md)', padding: '12px 14px',
+                display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13,
+                    textTransform: 'capitalize', color: 'var(--navy)', marginBottom: 2 }}>
+                    {i.category?.replace('_', ' ')}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                    {new Date(i.reported_at).toLocaleDateString()}
+                    <span style={{ fontFamily: 'monospace', marginLeft: 8 }}>
+                      {i.reference_number}
+                    </span>
+                  </div>
+                </div>
+                <Badge status={i.status} />
+              </div>
+            ))}
           </div>
         </div>
       )}

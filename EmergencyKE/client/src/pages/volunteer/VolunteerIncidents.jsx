@@ -5,13 +5,19 @@ import DashboardLayout from "../../components/layout/DashboardLayout";
 import Badge from "../../components/ui/Badge";
 import API from "../../services/api";
 
-const STATUS_COLORS = {
-  reported:    '#d97706',
-  dispatching: '#2563eb',
-  in_progress: '#059669',
-  resolved:    '#6b7280',
-  cancelled:   '#dc2626',
-  escalated:   '#7c3aed',
+const STATUS_FILTERS = ['', 'reported', 'dispatching', 'in_progress', 'resolved'];
+
+const SEV = {
+  high:   { color: '#dc2626', bg: '#fef2f2' },
+  medium: { color: '#d97706', bg: '#fffbeb' },
+  low:    { color: '#16a34a', bg: '#f0fdf4' },
+};
+
+const card = {
+  background: '#fff',
+  border: '1px solid var(--line)',
+  borderRadius: 'var(--radius-md)',
+  padding: '14px 16px',
 };
 
 export default function VolunteerIncidents() {
@@ -20,6 +26,7 @@ export default function VolunteerIncidents() {
   const [loading,      setLoading]      = useState(true);
   const [lastUpdated,  setLastUpdated]  = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
+  const [visible,      setVisible]      = useState(8);
 
   const load = () => {
     setLoading(true);
@@ -34,6 +41,7 @@ export default function VolunteerIncidents() {
   };
 
   useEffect(() => {
+    setVisible(8);
     load();
     const timer = setInterval(load, 15000);
     return () => clearInterval(timer);
@@ -46,111 +54,117 @@ export default function VolunteerIncidents() {
       <div style={{ display: 'flex', justifyContent: 'space-between',
         alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
 
-        {/* Status filter */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {['', 'reported', 'dispatching', 'in_progress', 'resolved'].map(s => (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {STATUS_FILTERS.map(s => (
             <button key={s}
               className={`btn btn-sm ${statusFilter === s ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setStatusFilter(s)}
-              style={{ textTransform: 'capitalize', fontSize: 11 }}>
+              style={{ fontSize: 11, textTransform: 'capitalize' }}>
               {s === '' ? 'All' : s.replace('_', ' ')}
             </button>
           ))}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-            {lastUpdated ? `Updated: ${lastUpdated.toLocaleTimeString()}` : ''}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {lastUpdated && (
+            <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+              {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
           <button className="btn btn-secondary btn-sm" onClick={load}>
-            <MdRefresh size={15} /> Refresh
+            <MdRefresh size={14} />
           </button>
         </div>
       </div>
 
-      {/* Count */}
-      <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>
-        {loading ? 'Loading...' : `${incidents.length} incident${incidents.length !== 1 ? 's' : ''} found`}
+      <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14 }}>
+        {loading ? 'Loading…' : `${incidents.length} incident${incidents.length !== 1 ? 's' : ''}`}
       </p>
 
-      {/* List */}
       {!loading && incidents.length === 0 ? (
-        <div className="table-card" style={{ padding: 32, textAlign: 'center' }}>
-          <p style={{ fontSize: 14, color: 'var(--muted)' }}>
-            No incidents found.
-          </p>
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
-            This page refreshes automatically every 15 seconds.
+        <div style={{ ...card, textAlign: 'center', padding: '40px 20px' }}>
+          <p style={{ fontSize: 14, color: 'var(--muted)' }}>No incidents found.</p>
+          <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
+            Refreshes automatically every 15 seconds.
           </p>
         </div>
       ) : (
-        <div className="table-card">
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ minWidth: 680 }}>
-              <thead>
-                <tr>
-                  <th>Reference</th>
-                  <th>Category</th>
-                  <th>Severity</th>
-                  <th>Location</th>
-                  <th>Status</th>
-                  <th>Reported</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {incidents.map(i => (
-                  <tr key={i.incident_id} style={{
-                    borderLeft: `3px solid ${STATUS_COLORS[i.status] || 'var(--line)'}`,
-                  }}>
-                    <td style={{ fontFamily: 'monospace', fontSize: 11 }}>
-                      {i.reference_number}
-                    </td>
-                    <td style={{ textTransform: 'capitalize', fontWeight: 600,
-                      fontSize: 13 }}>
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {incidents.slice(0, visible).map(i => {
+              const sev = SEV[i.severity] || SEV.low;
+              const canRespond = ['reported', 'dispatching', 'in_progress'].includes(i.status);
+              return (
+                <div key={i.incident_id} style={card}>
+
+                  {/* Category + status */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between',
+                    alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontWeight: 700, fontSize: 14,
+                      textTransform: 'capitalize', color: 'var(--navy)' }}>
                       {i.category?.replace('_', ' ')}
-                    </td>
-                    <td>
+                    </span>
+                    <Badge status={i.status} />
+                  </div>
+
+                  {/* Reference + location */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px 12px',
+                    marginBottom: 10 }}>
+                    <span style={{ fontSize: 11, fontFamily: 'monospace',
+                      color: 'var(--muted)' }}>
+                      {i.reference_number}
+                    </span>
+                    {(i.location_text || i.latitude) && (
+                      <span style={{ fontSize: 11, color: 'var(--muted)',
+                        display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <MdLocationOn size={11} />
+                        {i.location_text ||
+                          `${parseFloat(i.latitude).toFixed(3)}, ${parseFloat(i.longitude).toFixed(3)}`}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Severity + time + action */}
+                  <div style={{ display: 'flex', alignItems: 'center',
+                    justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{
-                        fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
+                        fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
                         padding: '2px 8px', borderRadius: 20,
-                        background: i.severity === 'high'   ? 'var(--red-xlt)'  :
-                                    i.severity === 'medium' ? '#fef3c7'          : 'var(--green-xlt)',
-                        color:      i.severity === 'high'   ? 'var(--red)'      :
-                                    i.severity === 'medium' ? '#d97706'          : 'var(--green)',
+                        background: sev.bg, color: sev.color,
                       }}>
                         {i.severity}
                       </span>
-                    </td>
-                    <td style={{ fontSize: 12, color: 'var(--muted)',
-                      maxWidth: 180, overflow: 'hidden',
-                      textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <MdLocationOn size={12} color="var(--red)" />
-                        {i.location_text ||
-                          (i.latitude
-                            ? `${parseFloat(i.latitude).toFixed(4)}, ${parseFloat(i.longitude).toFixed(4)}`
-                            : '—')}
+                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+                        {new Date(i.reported_at).toLocaleString()}
                       </span>
-                    </td>
-                    <td><Badge status={i.status} /></td>
-                    <td style={{ fontSize: 11, color: 'var(--muted)' }}>
-                      {new Date(i.reported_at).toLocaleString()}
-                    </td>
-                    <td>
-                      {['reported','dispatching','in_progress'].includes(i.status) && (
-                        <button className="btn btn-primary btn-sm"
-                          onClick={() => navigate(`/volunteer/alert/${i.incident_id}`)}>
-                          Respond
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                    {canRespond && (
+                      <button className="btn btn-primary btn-sm"
+                        onClick={() => navigate(`/volunteer/alert/${i.incident_id}`)}>
+                        Respond
+                      </button>
+                    )}
+                  </div>
+
+                </div>
+              );
+            })}
           </div>
-        </div>
+
+          {visible < incidents.length && (
+            <button
+              onClick={() => setVisible(v => v + 8)}
+              style={{
+                marginTop: 12, width: '100%', padding: '11px',
+                background: 'transparent', border: '1px solid var(--line)',
+                borderRadius: 'var(--radius-md)', cursor: 'pointer',
+                fontSize: 13, color: 'var(--muted)', fontWeight: 500,
+              }}>
+              Show more · {incidents.length - visible} remaining
+            </button>
+          )}
+        </>
       )}
 
     </DashboardLayout>
