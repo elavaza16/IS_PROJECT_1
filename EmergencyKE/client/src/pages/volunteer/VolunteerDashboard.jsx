@@ -102,31 +102,33 @@ export default function VolunteerDashboard() {
           <div className="table-header">
             <span className="table-title">Active Incidents</span>
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Reference</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {active.map(i => (
-                <tr key={i.incident_id}>
-                  <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{i.reference_number}</td>
-                  <td>{i.category?.replace('_',' ')}</td>
-                  <td><Badge status={i.status} /></td>
-                  <td>
-                    <button className="btn btn-ghost btn-sm"
-                      onClick={() => navigate(`/volunteer/alert/${i.incident_id}`)}>
-                      View
-                    </button>
-                  </td>
+          <div style={{ overflowX: 'auto' }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {active.map(i => (
+                  <tr key={i.incident_id}>
+                    <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{i.reference_number}</td>
+                    <td>{i.category?.replace('_',' ')}</td>
+                    <td><Badge status={i.status} /></td>
+                    <td>
+                      <button className="btn btn-ghost btn-sm"
+                        onClick={() => navigate(`/volunteer/alert/${i.incident_id}`)}>
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -140,26 +142,28 @@ export default function VolunteerDashboard() {
               View all
             </button>
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Reference</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.slice(0,5).map(i => (
-                <tr key={i.incident_id}>
-                  <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{i.reference_number}</td>
-                  <td>{i.category?.replace('_',' ')}</td>
-                  <td><Badge status={i.status} /></td>
-                  <td>{new Date(i.reported_at).toLocaleDateString()}</td>
+          <div style={{ overflowX: 'auto' }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {history.slice(0,5).map(i => (
+                  <tr key={i.incident_id}>
+                    <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{i.reference_number}</td>
+                    <td>{i.category?.replace('_',' ')}</td>
+                    <td><Badge status={i.status} /></td>
+                    <td>{new Date(i.reported_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

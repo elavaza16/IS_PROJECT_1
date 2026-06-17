@@ -47,7 +47,7 @@ export default function VolunteerIncidents() {
         alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
 
         {/* Status filter */}
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {['', 'reported', 'dispatching', 'in_progress', 'resolved'].map(s => (
             <button key={s}
               className={`btn btn-sm ${statusFilter === s ? 'btn-primary' : 'btn-secondary'}`}

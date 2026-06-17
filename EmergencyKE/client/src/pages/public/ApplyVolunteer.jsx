@@ -76,7 +76,7 @@ export default function ApplyVolunteer() {
 
   if (ok) return (
     <DashboardLayout title="Application Submitted">
-      <div style={{ maxWidth: 520, margin: '0 auto' }}>
+      <div style={{ maxWidth: 520, margin: '0 auto', width: '100%' }}>
         <Alert type="success">{ok}</Alert>
         <div style={{
           background: 'var(--grey-lt)', borderRadius: 'var(--radius-md)',
@@ -101,7 +101,7 @@ export default function ApplyVolunteer() {
 
   return (
     <DashboardLayout title="Apply to Become a Volunteer">
-      <div style={{ maxWidth: 560, margin: '0 auto' }}>
+      <div style={{ maxWidth: 560, margin: '0 auto', width: '100%' }}>
 
         <div style={{
           background: 'var(--blue-lt)', border: '1px solid #AED6F1',
