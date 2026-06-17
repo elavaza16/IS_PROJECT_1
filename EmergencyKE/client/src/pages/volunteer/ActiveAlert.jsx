@@ -96,7 +96,7 @@ export default function ActiveAlert() {
 
   return (
     <DashboardLayout title="Incident Response">
-      <div style={{ maxWidth: 600, margin: '0 auto' }}>
+      <div style={{ maxWidth: 600, margin: '0 auto', width: '100%' }}>
 
         {err && <Alert type="error">{err}</Alert>}
         {ok  && <Alert type="success">{ok}</Alert>}
@@ -109,7 +109,7 @@ export default function ActiveAlert() {
               <Badge status={incident.status} />
             </div>
             <div style={{ padding: 16 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12,
                 marginBottom: 16 }}>
                 {[
                   ['Reference', incident.reference_number],
@@ -127,7 +127,8 @@ export default function ActiveAlert() {
               {/* Location + nav link */}
               <div style={{ background: 'var(--grey-lt)', borderRadius: 'var(--radius-md)',
                 padding: '10px 12px', marginBottom: 16, display: 'flex',
-                alignItems: 'center', justifyContent: 'space-between' }}>
+                alignItems: 'center', justifyContent: 'space-between',
+                flexWrap: 'wrap', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6,
                   fontSize: 13, color: 'var(--navy)' }}>
                   <MdLocationOn size={16} color="var(--red)" />

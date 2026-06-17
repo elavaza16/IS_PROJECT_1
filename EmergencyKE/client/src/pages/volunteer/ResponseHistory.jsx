@@ -27,34 +27,36 @@ export default function ResponseHistory() {
             No responses yet.
           </p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Reference</th>
-                <th>Type</th>
-                <th>Severity</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Response Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map(i => (
-                <tr key={i.incident_id}>
-                  <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{i.reference_number}</td>
-                  <td style={{ textTransform: 'capitalize' }}>{i.category?.replace('_',' ')}</td>
-                  <td style={{ textTransform: 'capitalize' }}>{i.severity}</td>
-                  <td><Badge status={i.status} /></td>
-                  <td>{new Date(i.reported_at).toLocaleDateString()}</td>
-                  <td>
-                    {i.responded_at
-                      ? `${Math.round((new Date(i.responded_at) - new Date(i.reported_at)) / 60000)} min`
-                      : '—'}
-                  </td>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ minWidth: 520 }}>
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Type</th>
+                  <th>Severity</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Response Time</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {history.map(i => (
+                  <tr key={i.incident_id}>
+                    <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{i.reference_number}</td>
+                    <td style={{ textTransform: 'capitalize' }}>{i.category?.replace('_',' ')}</td>
+                    <td style={{ textTransform: 'capitalize' }}>{i.severity}</td>
+                    <td><Badge status={i.status} /></td>
+                    <td>{new Date(i.reported_at).toLocaleDateString()}</td>
+                    <td>
+                      {i.responded_at
+                        ? `${Math.round((new Date(i.responded_at) - new Date(i.reported_at)) / 60000)} min`
+                        : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </DashboardLayout>
