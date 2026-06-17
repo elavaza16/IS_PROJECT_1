@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MdOutlineEmergency, MdHistory, MdLocationOn } from "react-icons/md";
+import {
+  MdOutlineEmergency, MdHistory, MdLocationOn,
+  MdNotificationsActive, MdDirectionsRun, MdAssignment, MdCheckCircle,
+} from "react-icons/md";
 import { useAuth } from "../../context/AuthContext";
 import { getMyResponses } from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
@@ -42,14 +45,40 @@ export default function VolunteerDashboard() {
       {/* Stats */}
       <div className="stat-grid">
         {[
-          { label: 'Pending Alerts',   value: alerts.length,   color: '#f59e0b', bg: '#fef3c7' },
-          { label: 'Active Incidents', value: active.length,   color: '#10b981', bg: '#d1fae5' },
-          { label: 'Total Responses',  value: history.length,  color: '#3b82f6', bg: '#dbeafe' },
-          { label: 'Resolved',         value: resolved.length, color: '#8b5cf6', bg: '#ede9fe' },
+          {
+            label: 'Pending Alerts',
+            value: alerts.length,
+            color: '#f59e0b', bg: '#fef3c7',
+            icon: MdNotificationsActive,
+            to: '/volunteer/incidents',
+          },
+          {
+            label: 'Active Incidents',
+            value: active.length,
+            color: '#10b981', bg: '#d1fae5',
+            icon: MdDirectionsRun,
+            to: '/volunteer/incidents',
+          },
+          {
+            label: 'Total Responses',
+            value: history.length,
+            color: '#3b82f6', bg: '#dbeafe',
+            icon: MdAssignment,
+            to: '/volunteer/history',
+          },
+          {
+            label: 'Resolved',
+            value: resolved.length,
+            color: '#8b5cf6', bg: '#ede9fe',
+            icon: MdCheckCircle,
+            to: '/volunteer/history',
+          },
         ].map(s => (
-          <div key={s.label} className="stat-card">
+          <div key={s.label} className="stat-card"
+            onClick={() => navigate(s.to)}
+            style={{ cursor: 'pointer' }}>
             <div className="stat-icon" style={{ background: s.bg }}>
-              <MdOutlineEmergency size={22} color={s.color} />
+              <s.icon size={22} color={s.color} />
             </div>
             <div>
               <div className="stat-value">{s.value}</div>
