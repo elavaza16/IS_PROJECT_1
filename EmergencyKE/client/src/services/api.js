@@ -27,9 +27,10 @@ export const updateStatus   = (id, status)   => API.patch(`/incidents/${id}/stat
 
 //Volunteers 
 export const applyVolunteer = (data) => API.post('/volunteers/apply', data);
-export const acceptAlert    = (id)   => API.patch(`/incidents/${id}/respond`, { response: 'accepted' });
-export const declineAlert   = (id)   => API.patch(`/incidents/${id}/respond`, { response: 'declined' });
-export const getMyResponses = ()     => API.get('/volunteers/history');
+export const acceptAlert      = (id) => API.patch(`/incidents/${id}/respond`, { response: 'accepted' });
+export const declineAlert     = (id) => API.patch(`/incidents/${id}/respond`, { response: 'declined' });
+export const cancelResponse   = (id) => API.patch(`/incidents/${id}/cancel-response`);
+export const getMyResponses   = ()   => API.get('/volunteers/history');
 
 //Messages
 export const getMessages = (incidentId) => API.get(`/messages/${incidentId}`);

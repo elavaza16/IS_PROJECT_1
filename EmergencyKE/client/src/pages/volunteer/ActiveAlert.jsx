@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MdSend, MdCheckCircle, MdCancel, MdLocationOn } from "react-icons/md";
-import { acceptAlert, declineAlert, updateStatus, getMessages, sendMessage } from "../../services/api";
+import { acceptAlert, declineAlert, updateStatus, cancelResponse, getMessages, sendMessage } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Badge from "../../components/ui/Badge";
@@ -18,9 +18,11 @@ export default function ActiveAlert() {
   const [incident,  setIncident]  = useState(null);
   const [messages,  setMessages]  = useState([]);
   const [text,      setText]      = useState('');
-  const [accepting, setAccepting] = useState(false);
-  const [declining, setDeclining] = useState(false);
-  const [resolving, setResolving] = useState(false);
+  const [accepting,      setAccepting]      = useState(false);
+  const [declining,      setDeclining]      = useState(false);
+  const [resolving,      setResolving]      = useState(false);
+  const [cancelling,     setCancelling]     = useState(false);
+  const [cancelConfirm,  setCancelConfirm]  = useState(false);
   const [sending,   setSending]   = useState(false);
   const [err,       setErr]       = useState('');
   const [ok,        setOk]        = useState('');
@@ -64,6 +66,18 @@ export default function ActiveAlert() {
     } catch (err) {
       setErr(err.response?.data?.error || 'Failed to decline.');
       setDeclining(false);
+    }
+  };
+
+  const handleCancelResponse = async () => {
+    setCancelling(true);
+    try {
+      await cancelResponse(id);
+      navigate('/volunteer/incidents');
+    } catch (err) {
+      setErr(err.response?.data?.error || 'Failed to cancel response.');
+      setCancelling(false);
+      setCancelConfirm(false);
     }
   };
 
@@ -159,10 +173,48 @@ export default function ActiveAlert() {
               )}
 
               {isInProgress && (
-                <Button variant="primary" loading={resolving} onClick={handleResolve}
-                  style={{ background: 'var(--green)' }}>
-                  <MdCheckCircle size={18} /> Mark as Resolved
-                </Button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <Button variant="primary" loading={resolving} onClick={handleResolve}
+                    style={{ background: 'var(--green)' }}>
+                    <MdCheckCircle size={18} /> Mark as Resolved
+                  </Button>
+
+                  {!cancelConfirm ? (
+                    <button
+                      onClick={() => setCancelConfirm(true)}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontSize: 12, color: 'var(--muted)', textDecoration: 'underline',
+                        padding: '4px 0', textAlign: 'center',
+                      }}>
+                      Cancel my response
+                    </button>
+                  ) : (
+                    <div style={{
+                      padding: '14px', background: '#fef2f2',
+                      border: '1px solid #fecaca',
+                      borderRadius: 'var(--radius-md)',
+                    }}>
+                      <p style={{ fontSize: 13, fontWeight: 600,
+                        color: 'var(--navy)', marginBottom: 10 }}>
+                        Cancel your response?
+                      </p>
+                      <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12 }}>
+                        The incident will be returned to the queue so another volunteer can respond.
+                      </p>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <Button variant="danger" loading={cancelling}
+                          onClick={handleCancelResponse} style={{ flex: 1 }}>
+                          Yes, cancel
+                        </Button>
+                        <Button variant="secondary"
+                          onClick={() => setCancelConfirm(false)} style={{ flex: 1 }}>
+                          Keep responding
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>

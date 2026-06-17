@@ -7,6 +7,7 @@ router.get('/',              verifyToken, ctrl.getIncidents);
 router.get('/mine',          verifyToken, ctrl.getMyIncidents);
 router.get('/:id',           verifyToken, ctrl.getIncident);
 router.patch('/:id/status',  verifyToken, ctrl.updateStatus);
-router.patch('/:id/respond', verifyToken, requireRole('volunteer'), ctrl.respondToAlert);
+router.patch('/:id/respond',          verifyToken, requireRole('volunteer'), ctrl.respondToAlert);
+router.patch('/:id/cancel-response', verifyToken, requireRole('volunteer'), ctrl.cancelResponse);
 
 module.exports = router;

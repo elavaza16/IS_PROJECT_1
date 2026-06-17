@@ -180,6 +180,37 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
+exports.cancelResponse = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query(
+      `UPDATE dispatch_alerts SET status = 'cancelled'
+       WHERE incident_id = ? AND volunteer_id = (
+         SELECT volunteer_id FROM volunteers WHERE user_id = ?
+       )`,
+      [id, req.user.id]
+    );
+
+    await db.query(
+      `UPDATE incidents
+       SET status = 'reported', assigned_volunteer = NULL,
+           responded_at = NULL, updated_at = NOW()
+       WHERE incident_id = ?`,
+      [id]
+    );
+
+    await db.query(
+      `INSERT INTO incident_logs (incident_id, action, new_value, performed_by)
+       VALUES (?, 'volunteer_cancelled', 'reported', ?)`,
+      [id, req.user.id]
+    );
+
+    res.json({ message: 'Response cancelled. Incident returned to queue.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.respondToAlert = async (req, res) => {
   const { response } = req.body;
   const { id } = req.params;
