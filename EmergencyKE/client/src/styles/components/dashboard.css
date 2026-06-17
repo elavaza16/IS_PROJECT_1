@@ -53,6 +53,8 @@
 .dash-nav {
   flex: 1;
   padding: 0 var(--space-sm);
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .dash-nav-item {
@@ -214,6 +216,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
   padding: var(--space-md) var(--space-lg);
   border-bottom: 1px solid var(--line);
 }

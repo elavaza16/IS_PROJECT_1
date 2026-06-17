@@ -72,15 +72,17 @@ export default function VolunteerDashboard() {
                 style={{ padding: '14px 16px', borderBottom: '1px solid var(--line)',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   background: '#fff9f9' }}>
-                <div>
+                <div style={{ minWidth: 0, flex: 1, marginRight: 12 }}>
                   <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--red)',
                     marginBottom: 4 }}>
                     {alert.category?.replace('_',' ')}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--muted)', display: 'flex',
-                    alignItems: 'center', gap: 4 }}>
-                    <MdLocationOn size={13} />
-                    {alert.location_text || (alert.latitude ? `${parseFloat(alert.latitude).toFixed(4)}, ${parseFloat(alert.longitude).toFixed(4)}` : '—')}
+                    alignItems: 'center', gap: 4, overflow: 'hidden' }}>
+                    <MdLocationOn size={13} style={{ flexShrink: 0 }} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {alert.location_text || (alert.latitude ? `${parseFloat(alert.latitude).toFixed(4)}, ${parseFloat(alert.longitude).toFixed(4)}` : '—')}
+                    </span>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
                     {new Date(alert.reported_at).toLocaleTimeString()}
@@ -103,7 +105,7 @@ export default function VolunteerDashboard() {
             <span className="table-title">Active Incidents</span>
           </div>
           <div style={{ overflowX: 'auto' }}>
-            <table>
+            <table style={{ minWidth: 420 }}>
               <thead>
                 <tr>
                   <th>Reference</th>
@@ -143,7 +145,7 @@ export default function VolunteerDashboard() {
             </button>
           </div>
           <div style={{ overflowX: 'auto' }}>
-            <table>
+            <table style={{ minWidth: 440 }}>
               <thead>
                 <tr>
                   <th>Reference</th>

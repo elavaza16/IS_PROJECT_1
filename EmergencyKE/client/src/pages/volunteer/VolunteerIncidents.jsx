@@ -86,7 +86,7 @@ export default function VolunteerIncidents() {
       ) : (
         <div className="table-card">
           <div style={{ overflowX: 'auto' }}>
-            <table>
+            <table style={{ minWidth: 680 }}>
               <thead>
                 <tr>
                   <th>Reference</th>

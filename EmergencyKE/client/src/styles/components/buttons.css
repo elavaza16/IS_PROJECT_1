@@ -65,5 +65,5 @@
 .btn-ghost:hover { text-decoration: underline; }
 
 /* ── Sizes ── */
-.btn-sm { padding: 7px 14px; font-size: 12px; min-height: 34px; }
+.btn-sm { padding: 7px 14px; font-size: 12px; min-height: 34px; width: auto; }
 .btn-lg { padding: 14px 28px; font-size: 16px; min-height: 52px; }
