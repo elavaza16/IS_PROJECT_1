@@ -13,6 +13,7 @@ import { reportIncident } from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
+import { reverseGeocode } from "../../utils/geocode";
 
 const CATEGORIES = [
   { value: 'medical_distress', label: 'Medical Emergency', color: '#ef4444', Icon: MdLocalHospital },
@@ -37,11 +38,15 @@ export default function ReportEmergency() {
   const getLocation = () => {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const placeName = await reverseGeocode(latitude, longitude);
+
         setForm(f => ({
           ...f,
-          latitude:  pos.coords.latitude,
-          longitude: pos.coords.longitude,
+          latitude,
+          longitude,
+          location_text:   placeName,
           location_source: 'gps',
         }));
         setLocating(false);
@@ -190,9 +195,7 @@ export default function ReportEmergency() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ fontSize: 12, color: 'var(--muted)' }}>Location</span>
                 <span style={{ fontSize: 13, fontWeight: 600 }}>
-                  {form.location_source === 'gps'
-                    ? `GPS: ${form.latitude?.toFixed(4)}, ${form.longitude?.toFixed(4)}`
-                    : form.location_text}
+                  {form.location_text}
                 </span>
               </div>
             </div>

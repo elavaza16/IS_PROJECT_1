@@ -5,6 +5,7 @@ import { applyVolunteer } from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
+import { reverseGeocode } from "../../utils/geocode";
 
 export default function ApplyVolunteer() {
   const navigate = useNavigate();
@@ -33,12 +34,12 @@ export default function ApplyVolunteer() {
   const getLocation = () => {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      pos => {
-        setForm(f => ({
-          ...f,
-          latitude:  pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        }));
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const name = await reverseGeocode(latitude, longitude);
+
+        setForm(f => ({ ...f, latitude, longitude }));
+        setPlaceName(name);
         setLocating(false);
       },
       () => { setLocating(false); }
@@ -269,7 +270,7 @@ export default function ApplyVolunteer() {
               onClick={getLocation} type="button">
               <MdLocationOn size={16} />
               {form.latitude
-                ? `Captured: ${form.latitude.toFixed(4)}, ${form.longitude.toFixed(4)}`
+                ? `Captured: ${placeName}`
                 : 'Capture my GPS location'}
             </Button>
             <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
