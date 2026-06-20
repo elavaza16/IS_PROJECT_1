@@ -7,20 +7,35 @@ import {
 } from "react-icons/md";
 import { useAuth } from "../../context/AuthContext";
 import { getMyIncidents } from "../../services/api";
+import API from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Badge from "../../components/ui/Badge";
 
 export default function PublicDashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loginUser } = useAuth();
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [roleUpgraded, setRoleUpgraded] = useState(false);
 
   useEffect(() => {
     getMyIncidents()
       .then(({ data }) => setIncidents(data))
       .catch(console.error)
       .finally(() => setLoading(false));
+  }, []);
+
+  // Check if role has been upgraded since last login
+  useEffect(() => {
+    API.get('/auth/me')
+      .then(({ data }) => {
+        if (data.role && data.role !== user?.role) {
+          const token = localStorage.getItem('token');
+          loginUser(data, token);
+          if (data.role === 'volunteer') setRoleUpgraded(true);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Guard against accidental duplicate records from API/state merges.
@@ -54,6 +69,32 @@ export default function PublicDashboard() {
           Report an emergency or track your active incident below.
         </p>
       </div>
+
+      {/* Role upgrade banner */}
+      {roleUpgraded && (
+        <div style={{
+          background: '#d1fae5', border: '1px solid #6ee7b7',
+          borderLeft: '4px solid var(--green)',
+          borderRadius: 'var(--radius-md)',
+          padding: '14px 16px', marginBottom: 20,
+          display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
+        }}>
+          <div>
+            <p style={{ fontWeight: 700, fontSize: 14, color: '#065f46' }}>
+              You have been approved as a Volunteer!
+            </p>
+            <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
+              Your account has been upgraded. Go to your volunteer dashboard.
+            </p>
+          </div>
+          <button className="btn btn-primary btn-sm"
+            style={{ background: 'var(--green)', whiteSpace: 'nowrap' }}
+            onClick={() => navigate('/volunteer')}>
+            Go to Volunteer Dashboard
+          </button>
+        </div>
+      )}
 
       {/* Active incident banner */}
       {active && (
