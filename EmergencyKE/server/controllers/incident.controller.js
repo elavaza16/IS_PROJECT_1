@@ -114,12 +114,24 @@ exports.reportIncident = async (req, res) => {
 };
 
 exports.getIncidents = async (req, res) => {
-  const { status } = req.query;
+  const { status, excludeOwn } = req.query;
   try {
-    let query = 'SELECT * FROM incidents WHERE 1=1';
+    let query = `
+      SELECT i.*, u.full_name as reporter_name
+      FROM incidents i
+      JOIN users u ON i.reporter_id = u.user_id
+      WHERE 1=1
+    `;
     const params = [];
-    if (status) { query += ' AND status = ?'; params.push(status); }
-    query += ' ORDER BY reported_at DESC';
+
+    if (status) { query += ' AND i.status = ?'; params.push(status); }
+
+    if (excludeOwn === 'true') {
+      query += ' AND i.reporter_id != ?';
+      params.push(req.user.id);
+    }
+
+    query += ' ORDER BY i.reported_at DESC';
     const [rows] = await db.query(query, params);
     res.json(rows);
   } catch (err) {

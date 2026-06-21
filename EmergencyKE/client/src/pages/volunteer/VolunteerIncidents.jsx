@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MdLocationOn, MdRefresh } from "react-icons/md";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Badge from "../../components/ui/Badge";
+import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
 
 const STATUS_FILTERS = ['', 'reported', 'dispatching', 'in_progress', 'resolved'];
@@ -22,6 +23,7 @@ const card = {
 
 export default function VolunteerIncidents() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [incidents,    setIncidents]    = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [lastUpdated,  setLastUpdated]  = useState(null);
@@ -30,8 +32,8 @@ export default function VolunteerIncidents() {
 
   const load = () => {
     setLoading(true);
-    const query = statusFilter ? `?status=${statusFilter}` : '';
-    API.get(`/incidents${query}`)
+    const query = statusFilter ? `&status=${statusFilter}` : '';
+    API.get(`/incidents?excludeOwn=true${query}`)
       .then(({ data }) => {
         setIncidents(Array.isArray(data) ? data : []);
         setLastUpdated(new Date());
@@ -93,7 +95,8 @@ export default function VolunteerIncidents() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {incidents.slice(0, visible).map(i => {
               const sev = SEV[i.severity] || SEV.low;
-              const canRespond = ['reported', 'dispatching', 'in_progress'].includes(i.status);
+              const canRespond = ['reported', 'dispatching', 'in_progress'].includes(i.status)
+                && i.reporter_id !== user?.id;
               return (
                 <div key={i.incident_id} style={card}>
 
