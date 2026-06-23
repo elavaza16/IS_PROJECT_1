@@ -22,7 +22,6 @@ exports.reportIncident = async (req, res) => {
     const incidentId = result.insertId;
 
     // ── Duplicate detection ───────────────────────────────────
-    // Check for same category within 500m and last 10 minutes
     let parentIncidentId = null;
     if (latitude && longitude) {
       const [nearby] = await db.query(
@@ -99,7 +98,6 @@ exports.reportIncident = async (req, res) => {
     }
 
     // ── SMS notifications ─────────────────────────────────────
-    // Notify reporter that their report was received
     const [reporterRows] = await db.query(
       'SELECT phone FROM users WHERE user_id = ?', [reporter_id]
     );
@@ -109,7 +107,6 @@ exports.reportIncident = async (req, res) => {
       );
     }
 
-    // Notify the matched volunteer of the new alert
     if (nearest && nearest.phone) {
       sendSMS(nearest.phone,
         `EmergencyKE ALERT: New ${category.replace('_',' ')} reported near you. Open the app to respond. Ref: ${reference_number}`
@@ -206,7 +203,6 @@ exports.updateStatus = async (req, res) => {
       [id, status, req.user.id]
     );
 
-    // ── SMS notification on resolution ───────────────────────
     if (status === 'resolved') {
       const [rows] = await db.query(
         `SELECT i.reference_number, u.phone
@@ -221,7 +217,6 @@ exports.updateStatus = async (req, res) => {
         );
       }
     }
-    // ── End SMS notification ──────────────────────────────────
 
     res.json({ message: 'Status updated.' });
   } catch (err) {
@@ -264,20 +259,47 @@ exports.respondToAlert = async (req, res) => {
   const { response } = req.body;
   const { id } = req.params;
   try {
-    await db.query(
-      `UPDATE dispatch_alerts SET status = ?, responded_at = NOW()
-       WHERE incident_id = ? AND volunteer_id = (
-         SELECT volunteer_id FROM volunteers WHERE user_id = ?
-       )`,
-      [response === 'accepted' ? 'accepted' : 'declined', id, req.user.id]
-    );
-
     if (response === 'accepted') {
-      await db.query(
-        `UPDATE incidents SET status = 'in_progress', responded_at = NOW()
-         WHERE incident_id = ?`,
-        [id]
+      // Prevent race condition: check if incident is still available
+      const [incidentCheck] = await db.query(
+        `SELECT status FROM incidents WHERE incident_id = ?`, [id]
       );
+
+      if (!incidentCheck.length) {
+        return res.status(404).json({ error: 'Incident not found.' });
+      }
+
+      if (['in_progress', 'resolved', 'cancelled'].includes(incidentCheck[0].status)) {
+        return res.status(409).json({
+          error: 'This incident has already been accepted by another volunteer.'
+        });
+      }
+
+      const [volRows] = await db.query(
+        'SELECT volunteer_id FROM volunteers WHERE user_id = ?', [req.user.id]
+      );
+      const volunteerId = volRows[0]?.volunteer_id;
+
+      await db.query(
+        `UPDATE dispatch_alerts SET status = 'accepted', responded_at = NOW()
+         WHERE incident_id = ? AND volunteer_id = ?`,
+        [id, volunteerId]
+      );
+
+      await db.query(
+        `UPDATE incidents
+         SET status = 'in_progress', responded_at = NOW(), assigned_volunteer = ?
+         WHERE incident_id = ?`,
+        [volunteerId, id]
+      );
+
+      // Expire every other pending alert for this incident
+      await db.query(
+        `UPDATE dispatch_alerts SET status = 'expired'
+         WHERE incident_id = ? AND volunteer_id != ? AND status = 'pending'`,
+        [id, volunteerId]
+      );
+
       await db.query(
         `INSERT IGNORE INTO chats (incident_id) VALUES (?)`,
         [id]
@@ -285,11 +307,7 @@ exports.respondToAlert = async (req, res) => {
 
       // ── SMS notification on acceptance ─────────────────────
       const [rows] = await db.query(
-        `SELECT i.reference_number, u.phone, u.full_name as volunteer_name
-         FROM incidents i
-         JOIN users u ON u.user_id = ?
-         WHERE i.incident_id = ?`,
-        [req.user.id, id]
+        `SELECT reference_number FROM incidents WHERE incident_id = ?`, [id]
       );
       const [reporterRows] = await db.query(
         `SELECT u.phone FROM incidents i
@@ -303,10 +321,20 @@ exports.respondToAlert = async (req, res) => {
         );
       }
       // ── End SMS notification ────────────────────────────────
+
+    } else {
+      await db.query(
+        `UPDATE dispatch_alerts SET status = 'declined', responded_at = NOW()
+         WHERE incident_id = ? AND volunteer_id = (
+           SELECT volunteer_id FROM volunteers WHERE user_id = ?
+         )`,
+        [id, req.user.id]
+      );
     }
 
     res.json({ message: `Alert ${response}.` });
   } catch (err) {
+    console.error('Respond to alert error:', err);
     res.status(500).json({ error: err.message });
   }
 };

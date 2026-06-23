@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MdSend, MdCheckCircle, MdCancel, MdLocationOn } from "react-icons/md";
+import { MdSend, MdCheckCircle, MdCancel, MdLocationOn, MdPhone } from "react-icons/md";
 import { acceptAlert, declineAlert, updateStatus, cancelResponse, getMessages, sendMessage } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/layout/DashboardLayout";
@@ -55,6 +55,8 @@ export default function ActiveAlert() {
       API.get(`/incidents/${id}`).then(({ data }) => setIncident(data));
     } catch (err) {
       setErr(err.response?.data?.error || 'Failed to accept.');
+      // Refresh incident in case someone else already took it
+      API.get(`/incidents/${id}`).then(({ data }) => setIncident(data));
     } finally { setAccepting(false); }
   };
 
@@ -105,8 +107,10 @@ export default function ActiveAlert() {
     } finally { setSending(false); }
   };
 
-  const isPending    = incident?.status === 'dispatching';
+  const isPending    = incident?.status === 'dispatching' || incident?.status === 'reported';
   const isInProgress = incident?.status === 'in_progress';
+  const isTakenByOther = incident && incident.status === 'in_progress' &&
+    incident.assigned_volunteer && incident.assigned_volunteer !== user?.volunteer_id;
 
   return (
     <DashboardLayout title="Incident Response">
@@ -130,6 +134,7 @@ export default function ActiveAlert() {
                   ['Type',      incident.category?.replace('_',' ')],
                   ['Severity',  incident.severity],
                   ['Reported',  new Date(incident.reported_at).toLocaleString()],
+                  ['Reporter',  incident.reporter_name || '—'],
                 ].map(([label, value]) => (
                   <div key={label}>
                     <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>{label}</div>
@@ -137,6 +142,22 @@ export default function ActiveAlert() {
                   </div>
                 ))}
               </div>
+
+              {/* Reporter phone — click to call */}
+              {incident.reporter_phone && (
+                <div style={{ background: 'var(--grey-lt)', borderRadius: 'var(--radius-md)',
+                  padding: '10px 12px', marginBottom: 16, display: 'flex',
+                  alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6,
+                    fontSize: 13, color: 'var(--navy)' }}>
+                    <MdPhone size={16} color="var(--green)" />
+                    Reporter: {incident.reporter_phone}
+                  </div>
+                  <a href={`tel:${incident.reporter_phone}`} className="btn btn-secondary btn-sm">
+                    Call Reporter
+                  </a>
+                </div>
+              )}
 
               {/* Location + nav link */}
               <div style={{ background: 'var(--grey-lt)', borderRadius: 'var(--radius-md)',
@@ -158,8 +179,15 @@ export default function ActiveAlert() {
                 )}
               </div>
 
+              {/* Already taken by another volunteer */}
+              {isTakenByOther && (
+                <Alert type="warning">
+                  This incident has already been accepted by another volunteer.
+                </Alert>
+              )}
+
               {/* Action buttons */}
-              {isPending && (
+              {isPending && !isTakenByOther && (
                 <div style={{ display: 'flex', gap: 10 }}>
                   <Button variant="primary" loading={accepting} onClick={handleAccept}
                     style={{ flex: 1 }}>
