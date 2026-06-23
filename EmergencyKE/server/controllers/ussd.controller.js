@@ -108,7 +108,7 @@ exports.handleUssd = async (req, res) => {
         for (const vol of activeVolunteers) {
           await db.query(
             `INSERT INTO dispatch_alerts (incident_id, volunteer_id, radius_km)
-             VALUES (?,?,NULL)`,
+             VALUES (?,?,0)`,
             [incidentId, vol.volunteer_id]
           );
 
