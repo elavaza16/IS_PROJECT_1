@@ -98,6 +98,25 @@ exports.reportIncident = async (req, res) => {
       );
     }
 
+    // ── SMS notifications ─────────────────────────────────────
+    // Notify reporter that their report was received
+    const [reporterRows] = await db.query(
+      'SELECT phone FROM users WHERE user_id = ?', [reporter_id]
+    );
+    if (reporterRows[0]?.phone) {
+      sendSMS(reporterRows[0].phone,
+        `EmergencyKE: Your report (${reference_number}) has been received. Help is being dispatched.`
+      );
+    }
+
+    // Notify the matched volunteer of the new alert
+    if (nearest && nearest.phone) {
+      sendSMS(nearest.phone,
+        `EmergencyKE ALERT: New ${category.replace('_',' ')} reported near you. Open the app to respond. Ref: ${reference_number}`
+      );
+    }
+    // ── End SMS notifications ─────────────────────────────────
+
     res.status(201).json({
       message: 'Emergency reported successfully.',
       incident_id: incidentId,
@@ -186,6 +205,24 @@ exports.updateStatus = async (req, res) => {
        VALUES (?, 'status_update', ?, ?)`,
       [id, status, req.user.id]
     );
+
+    // ── SMS notification on resolution ───────────────────────
+    if (status === 'resolved') {
+      const [rows] = await db.query(
+        `SELECT i.reference_number, u.phone
+         FROM incidents i
+         JOIN users u ON i.reporter_id = u.user_id
+         WHERE i.incident_id = ?`,
+        [id]
+      );
+      if (rows[0]?.phone) {
+        sendSMS(rows[0].phone,
+          `EmergencyKE: Your incident (${rows[0].reference_number}) has been marked resolved. Stay safe.`
+        );
+      }
+    }
+    // ── End SMS notification ──────────────────────────────────
+
     res.json({ message: 'Status updated.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -245,6 +282,27 @@ exports.respondToAlert = async (req, res) => {
         `INSERT IGNORE INTO chats (incident_id) VALUES (?)`,
         [id]
       );
+
+      // ── SMS notification on acceptance ─────────────────────
+      const [rows] = await db.query(
+        `SELECT i.reference_number, u.phone, u.full_name as volunteer_name
+         FROM incidents i
+         JOIN users u ON u.user_id = ?
+         WHERE i.incident_id = ?`,
+        [req.user.id, id]
+      );
+      const [reporterRows] = await db.query(
+        `SELECT u.phone FROM incidents i
+         JOIN users u ON i.reporter_id = u.user_id
+         WHERE i.incident_id = ?`,
+        [id]
+      );
+      if (reporterRows[0]?.phone && rows[0]) {
+        sendSMS(reporterRows[0].phone,
+          `EmergencyKE: A volunteer has accepted your report (${rows[0].reference_number}) and is on the way.`
+        );
+      }
+      // ── End SMS notification ────────────────────────────────
     }
 
     res.json({ message: `Alert ${response}.` });
