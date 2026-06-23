@@ -90,9 +90,9 @@ exports.handleUssd = async (req, res) => {
 
         // Log the USSD session
         await db.query(
-          `INSERT INTO ussd_sessions (at_session_id, phone, user_id, incident_id, is_complete)
-           VALUES (?,?,?,?,1)`,
-          [sessionId, phoneNumber, reporterId, incidentId]
+            `INSERT INTO ussd_sessions (at_session_id, phone, user_id, incident_id, is_complete)
+            VALUES (?,?,?,?,1)`,
+            [sessionId, phoneNumber, reporterId, incidentId]
         );
 
         // Try to find and dispatch nearest volunteer (no GPS from USSD, so skip proximity matching here
