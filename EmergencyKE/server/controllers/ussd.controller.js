@@ -96,8 +96,35 @@ exports.handleUssd = async (req, res) => {
           [sessionId, phoneNumber, reporterId, incidentId]
         );
 
-        // Try to find and dispatch nearest volunteer (no GPS from USSD, so skip proximity matching here
-        // — admin/volunteers will see it in their incident list regardless)
+        // Broadcast to all active volunteers since USSD reports have no
+        // GPS coordinates, so proximity matching is not possible
+        const [activeVolunteers] = await db.query(
+          `SELECT v.volunteer_id, u.phone
+           FROM volunteers v
+           JOIN users u ON v.user_id = u.user_id
+           WHERE v.status = 'active'`
+        );
+
+        for (const vol of activeVolunteers) {
+          await db.query(
+            `INSERT INTO dispatch_alerts (incident_id, volunteer_id, radius_km)
+             VALUES (?,?,NULL)`,
+            [incidentId, vol.volunteer_id]
+          );
+
+          if (vol.phone) {
+            sendSMS(vol.phone,
+              `EmergencyKE ALERT: ${category.replace('_',' ')} reported at ${locationText}. ` +
+              `Reporter: ${phoneNumber}. Ref: ${reference_number}. Open the app to respond.`
+            );
+          }
+        }
+
+        await db.query(
+          `INSERT INTO incident_logs (incident_id, action, new_value, performed_by)
+           VALUES (?, 'broadcast_dispatched', ?, NULL)`,
+          [incidentId, activeVolunteers.length.toString()]
+        );
 
         // Send SMS confirmation to the reporter
         sendSMS(phoneNumber,
