@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const { haversine } = require('../utils/haversine');
+const { sendSMS } = require('../utils/sms');
 
 const CATEGORIES = {
   '1': 'medical_distress',
@@ -97,6 +98,11 @@ exports.handleUssd = async (req, res) => {
 
         // Try to find and dispatch nearest volunteer (no GPS from USSD, so skip proximity matching here
         // — admin/volunteers will see it in their incident list regardless)
+
+        // Send SMS confirmation to the reporter
+        sendSMS(phoneNumber,
+          `EmergencyKE: Your report (${reference_number}) has been received. Help is being dispatched.`
+        );
 
         response =
           `END Emergency reported.\n` +
