@@ -90,20 +90,27 @@ export default function VolunteerDashboard() {
         ))}
       </div>
 
-      {/* Incoming alerts */}
-      {alerts.length > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center',
-            justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>
-              Incoming Alerts
-            </span>
-            <span style={{ fontSize: 11, color: 'var(--muted)' }}>
-              Updates every 10 s
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {alerts.map(alert => (
+        {/* Incoming alerts */}
+        {alerts.length > 0 && (
+          <div style={{ marginTop: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center',
+              justifyContent: 'space-between', marginBottom: 12 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>
+                Incoming Alerts
+              </span>
+              {alerts.length > 3 ? (
+                <button className="btn btn-ghost btn-sm"
+                  onClick={() => navigate('/volunteer/incidents')}>
+                  View all ({alerts.length})
+                </button>
+              ) : (
+                <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+                  Updates every 10 s
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {alerts.slice(0, 3).map(alert => (
               <div key={alert.incident_id} style={{
                 background: '#fff',
                 border: '1px solid var(--line)',
