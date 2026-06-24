@@ -58,4 +58,8 @@ export const getAnalytics       = ()             => API.get('/admin/analytics');
 export const forgotPassword = (data)  => API.post('/auth/forgot-password', data);
 export const resetPassword  = (data)  => API.post('/auth/reset-password', data);
 
+export const getNotifications = () => API.get('/notifications');
+export const markNotificationRead = (id) => API.patch(`/notifications/${id}/read`);
+export const markAllNotificationsRead = () => API.patch('/notifications/read-all');
+
 export default API;

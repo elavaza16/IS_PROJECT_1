@@ -13,7 +13,7 @@ app.use('/api/messages',   require('./routes/message.routes'));
 app.use('/api/volunteers', require('./routes/volunteer.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/ussd', require('./routes/ussd.routes'));
-
+app.use('/api/notifications', require('./routes/notification.routes'));
 app.get('/', (req, res) => res.json({ message: 'EmergencyKE API running' }));
 
 const PORT = process.env.PORT || 5000;

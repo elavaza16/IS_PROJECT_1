@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const { haversine } = require('../utils/haversine');
 const { sendSMS } = require('../utils/sms');
+const { notify } = require('../utils/notifications');
 
 // Generate reference number
 const generateRef = () => `INC-${Date.now().toString().slice(-8)}-${Math.floor(Math.random()*100)}`;
@@ -97,7 +98,7 @@ exports.reportIncident = async (req, res) => {
       );
     }
 
-    // ── SMS notifications ─────────────────────────────────────
+    // ── SMS + in-app notifications ─────────────────────────────
     const [reporterRows] = await db.query(
       'SELECT phone FROM users WHERE user_id = ?', [reporter_id]
     );
@@ -106,13 +107,25 @@ exports.reportIncident = async (req, res) => {
         `EmergencyKE: Your report (${reference_number}) has been received. Help is being dispatched.`
       );
     }
+    notify(reporter_id, 'report_received',
+      `Your report (${reference_number}) has been received. Help is being dispatched.`, incidentId
+    );
 
     if (nearest && nearest.phone) {
       sendSMS(nearest.phone,
         `EmergencyKE ALERT: New ${category.replace('_',' ')} reported near you. Open the app to respond. Ref: ${reference_number}`
       );
+      // Need the volunteer's user_id, not just volunteer_id, for notifications
+      const [volUserRow] = await db.query(
+        'SELECT user_id FROM volunteers WHERE volunteer_id = ?', [nearest.volunteer_id]
+      );
+      if (volUserRow[0]) {
+        notify(volUserRow[0].user_id, 'new_alert',
+          `New ${category.replace('_',' ')} reported near you. Ref: ${reference_number}`, incidentId
+        );
+      }
     }
-    // ── End SMS notifications ─────────────────────────────────
+    // ── End notifications ─────────────────────────────────────
 
     res.status(201).json({
       message: 'Emergency reported successfully.',
@@ -219,7 +232,7 @@ exports.updateStatus = async (req, res) => {
 
     if (status === 'resolved') {
       const [rows] = await db.query(
-        `SELECT i.reference_number, u.phone
+        `SELECT i.reference_number, i.reporter_id, u.phone
          FROM incidents i
          JOIN users u ON i.reporter_id = u.user_id
          WHERE i.incident_id = ?`,
@@ -228,6 +241,11 @@ exports.updateStatus = async (req, res) => {
       if (rows[0]?.phone) {
         sendSMS(rows[0].phone,
           `EmergencyKE: Your incident (${rows[0].reference_number}) has been marked resolved. Stay safe.`
+        );
+      }
+      if (rows[0]) {
+        notify(rows[0].reporter_id, 'incident_resolved',
+          `Your incident (${rows[0].reference_number}) has been marked resolved.`, id
         );
       }
     }
@@ -319,9 +337,9 @@ exports.respondToAlert = async (req, res) => {
         [id]
       );
 
-      // ── SMS notification on acceptance ─────────────────────
+      // ── SMS + in-app notification on acceptance ────────────
       const [rows] = await db.query(
-        `SELECT reference_number FROM incidents WHERE incident_id = ?`, [id]
+        `SELECT reference_number, reporter_id FROM incidents WHERE incident_id = ?`, [id]
       );
       const [reporterRows] = await db.query(
         `SELECT u.phone FROM incidents i
@@ -334,7 +352,12 @@ exports.respondToAlert = async (req, res) => {
           `EmergencyKE: A volunteer has accepted your report (${rows[0].reference_number}) and is on the way.`
         );
       }
-      // ── End SMS notification ────────────────────────────────
+      if (rows[0]) {
+        notify(rows[0].reporter_id, 'volunteer_accepted',
+          `A volunteer has accepted your report (${rows[0].reference_number}) and is on the way.`, id
+        );
+      }
+      // ── End notification ────────────────────────────────────
 
     } else {
       await db.query(
