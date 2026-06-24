@@ -18,9 +18,11 @@ export default function VolunteerDashboard() {
   const [loading,   setLoading]   = useState(true);
 
   // Poll for new alerts every 10 seconds
+  // Only ever shows unclaimed incidents — reported/dispatching — never
+  // in_progress or resolved, since those have already been claimed or closed.
   useEffect(() => {
     const load = () => {
-      API.get('/incidents?status=dispatching')
+      API.get('/incidents?excludeOwn=true&status=reported,dispatching')
         .then(({ data }) => setAlerts(Array.isArray(data) ? data : []))
         .catch(() => {});
     };

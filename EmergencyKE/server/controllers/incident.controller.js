@@ -153,7 +153,12 @@ exports.getIncidents = async (req, res) => {
     `;
     const params = [];
 
-    if (status) { query += ' AND i.status = ?'; params.push(status); }
+    if (status) {
+      // Support comma-separated statuses, e.g. status=reported,dispatching
+      const statusList = status.split(',');
+      query += ` AND i.status IN (${statusList.map(() => '?').join(',')})`;
+      params.push(...statusList);
+    }
 
     if (excludeOwn === 'true') {
       query += ' AND i.reporter_id != ?';

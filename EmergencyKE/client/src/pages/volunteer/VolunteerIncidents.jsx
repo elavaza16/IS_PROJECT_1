@@ -6,7 +6,7 @@ import Badge from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
 
-const STATUS_FILTERS = ['', 'reported', 'dispatching', 'in_progress', 'resolved'];
+const STATUS_FILTERS = ['', 'reported', 'dispatching'];
 
 const SEV = {
   high:   { color: '#dc2626', bg: '#fef2f2' },
@@ -32,8 +32,14 @@ export default function VolunteerIncidents() {
 
   const load = () => {
     setLoading(true);
-    const query = statusFilter ? `&status=${statusFilter}` : '';
-    API.get(`/incidents?excludeOwn=true${query}`)
+    // Only ever show incidents that are still unclaimed.
+    // If a specific filter is selected, narrow within that set;
+    // otherwise show all unclaimed statuses.
+    const baseStatuses = ['reported', 'dispatching'];
+    const effectiveStatus = statusFilter && baseStatuses.includes(statusFilter)
+      ? statusFilter
+      : baseStatuses.join(',');
+    API.get(`/incidents?excludeOwn=true&status=${effectiveStatus}`)
       .then(({ data }) => {
         setIncidents(Array.isArray(data) ? data : []);
         setLastUpdated(new Date());

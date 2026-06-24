@@ -84,11 +84,19 @@ export default function DashboardLayout({ title, children }) {
   const handleNotifClick = async (notif) => {
     if (!notif.is_read) {
       await markNotificationRead(notif.notification_id);
+    }
+
+    if (notif.type === 'new_alert') {
+      // This notification has served its purpose — remove it from the visible list entirely
+      setNotifs(prev => prev.filter(n => n.notification_id !== notif.notification_id));
+      if (!notif.is_read) setUnreadCount(c => Math.max(0, c - 1));
+    } else {
       setNotifs(prev => prev.map(n =>
         n.notification_id === notif.notification_id ? { ...n, is_read: 1 } : n
       ));
-      setUnreadCount(c => Math.max(0, c - 1));
+      if (!notif.is_read) setUnreadCount(c => Math.max(0, c - 1));
     }
+
     if (notif.incident_id) {
       const path = user?.role === 'volunteer'
         ? `/volunteer/alert/${notif.incident_id}`
