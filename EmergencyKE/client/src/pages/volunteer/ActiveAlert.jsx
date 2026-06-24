@@ -107,10 +107,9 @@ export default function ActiveAlert() {
     } finally { setSending(false); }
   };
 
-  const isPending    = incident?.status === 'dispatching' || incident?.status === 'reported';
-  const isInProgress = incident?.status === 'in_progress';
-  const isTakenByOther = incident && incident.status === 'in_progress' &&
-    incident.assigned_volunteer && incident.assigned_volunteer !== user?.volunteer_id;
+  const isPending      = incident?.status === 'dispatching' || incident?.status === 'reported';
+const isInProgress   = incident?.status === 'in_progress' && incident?.is_assigned_to_me;
+const isTakenByOther = incident?.status === 'in_progress' && !incident?.is_assigned_to_me;
 
   return (
     <DashboardLayout title="Incident Response">

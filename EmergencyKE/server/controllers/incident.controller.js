@@ -180,7 +180,21 @@ exports.getIncident = async (req, res) => {
     );
     if (!rows.length)
       return res.status(404).json({ error: 'Incident not found.' });
-    res.json(rows[0]);
+
+    const incident = rows[0];
+
+    // Determine if the requesting user is the assigned volunteer (if any)
+    let isAssignedToMe = false;
+    if (incident.assigned_volunteer) {
+      const [volRows] = await db.query(
+        'SELECT volunteer_id FROM volunteers WHERE user_id = ?', [req.user.id]
+      );
+      if (volRows.length && volRows[0].volunteer_id === incident.assigned_volunteer) {
+        isAssignedToMe = true;
+      }
+    }
+
+    res.json({ ...incident, is_assigned_to_me: isAssignedToMe });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

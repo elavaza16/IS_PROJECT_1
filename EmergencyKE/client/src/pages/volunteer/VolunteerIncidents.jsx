@@ -95,8 +95,8 @@ export default function VolunteerIncidents() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {incidents.slice(0, visible).map(i => {
               const sev = SEV[i.severity] || SEV.low;
-              const canRespond = ['reported', 'dispatching', 'in_progress'].includes(i.status)
-                && i.reporter_id !== user?.id;
+              const canRespond = ['reported', 'dispatching'].includes(i.status)
+              && i.reporter_id !== user?.id;
               return (
                 <div key={i.incident_id} style={card}>
 
