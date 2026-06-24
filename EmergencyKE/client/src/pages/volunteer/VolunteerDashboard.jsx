@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  MdOutlineEmergency, MdHistory, MdLocationOn,
+  MdLocationOn,
   MdNotificationsActive, MdDirectionsRun, MdAssignment, MdCheckCircle,
 } from "react-icons/md";
 import { useAuth } from "../../context/AuthContext";
@@ -90,27 +90,27 @@ export default function VolunteerDashboard() {
         ))}
       </div>
 
-        {/* Incoming alerts */}
-        {alerts.length > 0 && (
-          <div style={{ marginTop: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center',
-              justifyContent: 'space-between', marginBottom: 12 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>
-                Incoming Alerts
+      {/* Incoming alerts */}
+      {alerts.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>
+              Incoming Alerts
+            </span>
+            {alerts.length > 3 ? (
+              <button className="btn btn-ghost btn-sm"
+                onClick={() => navigate('/volunteer/incidents')}>
+                View all ({alerts.length})
+              </button>
+            ) : (
+              <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+                Updates every 10 s
               </span>
-              {alerts.length > 3 ? (
-                <button className="btn btn-ghost btn-sm"
-                  onClick={() => navigate('/volunteer/incidents')}>
-                  View all ({alerts.length})
-                </button>
-              ) : (
-                <span style={{ fontSize: 11, color: 'var(--muted)' }}>
-                  Updates every 10 s
-                </span>
-              )}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {alerts.slice(0, 3).map(alert => (
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {alerts.slice(0, 3).map(alert => (
               <div key={alert.incident_id} style={{
                 background: '#fff',
                 border: '1px solid var(--line)',
@@ -184,45 +184,6 @@ export default function VolunteerDashboard() {
                   onClick={() => navigate(`/volunteer/alert/${i.incident_id}`)}>
                   View →
                 </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Recent history */}
-      {history.length > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center',
-            justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>
-              Recent Responses
-            </span>
-            <button className="btn btn-ghost btn-sm"
-              onClick={() => navigate('/volunteer/history')}>
-              View all
-            </button>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {history.slice(0, 5).map(i => (
-              <div key={i.incident_id} style={{
-                background: '#fff', border: '1px solid var(--line)',
-                borderRadius: 'var(--radius-md)', padding: '12px 14px',
-                display: 'flex', alignItems: 'center', gap: 10,
-              }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13,
-                    textTransform: 'capitalize', color: 'var(--navy)', marginBottom: 2 }}>
-                    {i.category?.replace('_', ' ')}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-                    {new Date(i.reported_at).toLocaleDateString()}
-                    <span style={{ fontFamily: 'monospace', marginLeft: 8 }}>
-                      {i.reference_number}
-                    </span>
-                  </div>
-                </div>
-                <Badge status={i.status} />
               </div>
             ))}
           </div>
