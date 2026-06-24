@@ -235,7 +235,7 @@ export default function DashboardLayout({ title, children }) {
                       style={{
                         padding: '12px 14px', cursor: 'pointer',
                         borderBottom: '1px solid var(--line)',
-                        background: n.is_read ? 'var(--white)' : '#fef3c7',
+                        background: n.is_read ? 'var(--white)' : '#ffffff',
                         display: 'flex', flexDirection: 'column', gap: 3,
                       }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>
