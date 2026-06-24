@@ -87,8 +87,6 @@ export default function DashboardLayout({ title, children }) {
       setUnreadCount(c => Math.max(0, c - 1));
     }
 
-    // Every notification disappears from the panel once read —
-    // keeps the list to only what's genuinely new/unseen.
     setNotifs(prev => prev.filter(n => n.notification_id !== notif.notification_id));
 
     if (notif.incident_id) {
@@ -98,6 +96,15 @@ export default function DashboardLayout({ title, children }) {
       navigate(path);
       setNotifOpen(false);
     }
+  };
+
+  const handleDismiss = async (notif) => {
+    if (!notif.is_read) {
+      await markNotificationRead(notif.notification_id);
+      setUnreadCount(c => Math.max(0, c - 1));
+    }
+    setNotifs(prev => prev.filter(n => n.notification_id !== notif.notification_id));
+    // No navigation — this is "I've seen it, just clear it"
   };
 
   const handleMarkAllRead = async () => {
@@ -233,22 +240,37 @@ export default function DashboardLayout({ title, children }) {
                 ) : (
                   notifs.map(n => (
                     <div key={n.notification_id}
-                      onClick={() => handleNotifClick(n)}
                       style={{
-                        padding: '12px 14px', cursor: 'pointer',
+                        padding: '12px 14px',
                         borderBottom: '1px solid var(--line)',
                         background: '#fef3c7',
-                        display: 'flex', flexDirection: 'column', gap: 3,
+                        display: 'flex', alignItems: 'flex-start', gap: 8,
                       }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>
-                        {TYPE_LABELS[n.type] || n.type}
-                      </span>
-                      <span style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4 }}>
-                        {n.content}
-                      </span>
-                      <span style={{ fontSize: 10, color: 'var(--muted)' }}>
-                        {timeAgo(n.sent_at)}
-                      </span>
+                      {/* Content — click to navigate + mark read + remove */}
+                      <div onClick={() => handleNotifClick(n)}
+                        style={{ flex: 1, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>
+                          {TYPE_LABELS[n.type] || n.type}
+                        </span>
+                        <span style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4 }}>
+                          {n.content}
+                        </span>
+                        <span style={{ fontSize: 10, color: 'var(--muted)' }}>
+                          {timeAgo(n.sent_at)}
+                        </span>
+                      </div>
+
+                      {/* Dismiss — mark read + remove, no navigation */}
+                      <button onClick={(e) => { e.stopPropagation(); handleDismiss(n); }}
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          padding: 4, color: 'var(--muted)', flexShrink: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          borderRadius: '50%',
+                        }}
+                        title="Dismiss">
+                        <MdClose size={16} />
+                      </button>
                     </div>
                   ))
                 )}
