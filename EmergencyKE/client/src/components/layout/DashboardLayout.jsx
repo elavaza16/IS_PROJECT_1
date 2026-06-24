@@ -84,18 +84,12 @@ export default function DashboardLayout({ title, children }) {
   const handleNotifClick = async (notif) => {
     if (!notif.is_read) {
       await markNotificationRead(notif.notification_id);
+      setUnreadCount(c => Math.max(0, c - 1));
     }
 
-    if (notif.type === 'new_alert') {
-      // This notification has served its purpose — remove it from the visible list entirely
-      setNotifs(prev => prev.filter(n => n.notification_id !== notif.notification_id));
-      if (!notif.is_read) setUnreadCount(c => Math.max(0, c - 1));
-    } else {
-      setNotifs(prev => prev.map(n =>
-        n.notification_id === notif.notification_id ? { ...n, is_read: 1 } : n
-      ));
-      if (!notif.is_read) setUnreadCount(c => Math.max(0, c - 1));
-    }
+    // Every notification disappears from the panel once read —
+    // keeps the list to only what's genuinely new/unseen.
+    setNotifs(prev => prev.filter(n => n.notification_id !== notif.notification_id));
 
     if (notif.incident_id) {
       const path = user?.role === 'volunteer'
@@ -108,7 +102,7 @@ export default function DashboardLayout({ title, children }) {
 
   const handleMarkAllRead = async () => {
     await markAllNotificationsRead();
-    setNotifs(prev => prev.map(n => ({ ...n, is_read: 1 })));
+    setNotifs([]);
     setUnreadCount(0);
   };
 
@@ -243,7 +237,7 @@ export default function DashboardLayout({ title, children }) {
                       style={{
                         padding: '12px 14px', cursor: 'pointer',
                         borderBottom: '1px solid var(--line)',
-                        background: n.is_read ? 'var(--white)' : '#ffffff',
+                        background: '#fef3c7',
                         display: 'flex', flexDirection: 'column', gap: 3,
                       }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>

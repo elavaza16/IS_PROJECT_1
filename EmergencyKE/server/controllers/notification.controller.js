@@ -4,7 +4,7 @@ exports.getNotifications = async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT * FROM notifications
-       WHERE recipient_id = ? AND channel = 'in_app'
+       WHERE recipient_id = ? AND channel = 'in_app' AND is_read = 0
        ORDER BY sent_at DESC
        LIMIT 20`,
       [req.user.id]
