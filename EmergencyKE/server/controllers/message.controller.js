@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { notify } = require('../utils/notifications');
 
 exports.getMessages = async (req, res) => {
   try {
@@ -35,6 +36,37 @@ exports.sendMessage = async (req, res) => {
        VALUES (?,?,?,?)`,
       [chat[0].chat_id, sender_id, sender_role, content]
     );
+
+    // ── Notify the OTHER party in this conversation ─────────
+    const [incidentRow] = await db.query(
+      `SELECT reporter_id, assigned_volunteer FROM incidents WHERE incident_id = ?`,
+      [incident_id]
+    );
+
+    if (incidentRow.length) {
+      const { reporter_id, assigned_volunteer } = incidentRow[0];
+      let recipientUserId = null;
+
+      if (sender_id === reporter_id) {
+        // Reporter sent it → notify the assigned volunteer
+        if (assigned_volunteer) {
+          const [volUserRow] = await db.query(
+            'SELECT user_id FROM volunteers WHERE volunteer_id = ?', [assigned_volunteer]
+          );
+          recipientUserId = volUserRow[0]?.user_id || null;
+        }
+      } else {
+        // Volunteer sent it → notify the reporter
+        recipientUserId = reporter_id;
+      }
+
+      if (recipientUserId) {
+        const preview = content.length > 60 ? content.slice(0, 60) + '…' : content;
+        notify(recipientUserId, 'new_message', `New message: "${preview}"`, incident_id);
+      }
+    }
+    // ── End notification ─────────────────────────────────────
+
     res.status(201).json({ message: 'Message sent.' });
   } catch (err) {
     res.status(500).json({ error: err.message });

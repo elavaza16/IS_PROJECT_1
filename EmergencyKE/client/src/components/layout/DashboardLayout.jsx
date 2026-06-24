@@ -30,10 +30,11 @@ const NAV = {
 };
 
 const TYPE_LABELS = {
-  report_received:   'Report Received',
-  new_alert:         'New Emergency Alert',
-  volunteer_accepted:'Volunteer Responding',
-  incident_resolved: 'Incident Resolved',
+  report_received:    'Report Received',
+  new_alert:           'New Emergency Alert',
+  volunteer_accepted:  'Volunteer Responding',
+  incident_resolved:   'Incident Resolved',
+  new_message:         'New Message',
 };
 
 export default function DashboardLayout({ title, children }) {

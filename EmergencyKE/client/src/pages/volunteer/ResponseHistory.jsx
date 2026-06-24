@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { getMyResponses } from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Badge from "../../components/ui/Badge";
@@ -17,6 +18,7 @@ const card = {
 };
 
 export default function ResponseHistory() {
+  const navigate = useNavigate();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(10);
@@ -48,8 +50,16 @@ export default function ResponseHistory() {
               const responseMin = i.responded_at
                 ? Math.round((new Date(i.responded_at) - new Date(i.reported_at)) / 60000)
                 : null;
+              const isClickable = ['in_progress', 'resolved'].includes(i.status);
               return (
-                <div key={i.incident_id} style={card}>
+                <div key={i.incident_id}
+                  style={{
+                    ...card,
+                    cursor: isClickable ? 'pointer' : 'default',
+                  }}
+                  onClick={() => {
+                    if (isClickable) navigate(`/volunteer/alert/${i.incident_id}`);
+                  }}>
 
                   {/* Category + status */}
                   <div style={{ display: 'flex', justifyContent: 'space-between',
@@ -74,17 +84,24 @@ export default function ResponseHistory() {
                   </div>
 
                   {/* Severity + response time */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{
-                      fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-                      padding: '2px 8px', borderRadius: 20,
-                      background: sev.bg, color: sev.color,
-                    }}>
-                      {i.severity}
-                    </span>
-                    {responseMin !== null && (
-                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>
-                        Response time: {responseMin} min
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+                        padding: '2px 8px', borderRadius: 20,
+                        background: sev.bg, color: sev.color,
+                      }}>
+                        {i.severity}
+                      </span>
+                      {responseMin !== null && (
+                        <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+                          Response time: {responseMin} min
+                        </span>
+                      )}
+                    </div>
+                    {isClickable && (
+                      <span style={{ fontSize: 11, color: 'var(--blue)', fontWeight: 600 }}>
+                        View →
                       </span>
                     )}
                   </div>
