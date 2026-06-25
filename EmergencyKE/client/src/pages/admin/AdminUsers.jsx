@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAllUsers, deactivateUser } from "../../services/api";
+import { getAllUsers, deactivateUser, activateUser } from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Alert from "../../components/ui/Alert";
 import Badge from "../../components/ui/Badge";
@@ -12,7 +12,7 @@ export default function AdminUsers() {
   const [search,  setSearch]  = useState('');
   const [err,     setErr]     = useState('');
   const [ok,      setOk]      = useState('');
-  const [modal,   setModal]   = useState(null); // user to deactivate
+  const [modal,   setModal]   = useState(null); // { user, action: 'deactivate' | 'activate' }
 
   const load = () => {
     getAllUsers()
@@ -23,14 +23,20 @@ export default function AdminUsers() {
 
   useEffect(() => { load(); }, []);
 
-  const handleDeactivate = async () => {
+  const handleConfirm = async () => {
+    const { user, action } = modal;
     try {
-      await deactivateUser(modal.user_id);
-      setOk(`${modal.full_name}'s account has been deactivated.`);
+      if (action === 'deactivate') {
+        await deactivateUser(user.user_id);
+        setOk(`${user.full_name}'s account has been deactivated.`);
+      } else {
+        await activateUser(user.user_id);
+        setOk(`${user.full_name}'s account has been reactivated.`);
+      }
       setModal(null);
       load();
     } catch (err) {
-      setErr(err.response?.data?.error || 'Failed to deactivate user.');
+      setErr(err.response?.data?.error || `Failed to ${action} user.`);
       setModal(null);
     }
   };
@@ -112,11 +118,19 @@ export default function AdminUsers() {
                       {new Date(u.created_at).toLocaleDateString()}
                     </td>
                     <td>
-                      {u.is_active && u.role !== 'admin' && (
-                        <button className="btn btn-danger btn-sm"
-                          onClick={() => setModal(u)}>
-                          Deactivate
-                        </button>
+                      {u.role !== 'admin' && (
+                        u.is_active ? (
+                          <button className="btn btn-danger btn-sm"
+                            onClick={() => setModal({ user: u, action: 'deactivate' })}>
+                            Deactivate
+                          </button>
+                        ) : (
+                          <button className="btn btn-primary btn-sm"
+                            style={{ background: 'var(--green)' }}
+                            onClick={() => setModal({ user: u, action: 'activate' })}>
+                            Reactivate
+                          </button>
+                        )
                       )}
                     </td>
                   </tr>
@@ -129,17 +143,29 @@ export default function AdminUsers() {
 
       {/* Confirm modal */}
       <Modal open={!!modal} onClose={() => setModal(null)}
-        title="Deactivate Account"
+        title={modal?.action === 'deactivate' ? 'Deactivate Account' : 'Reactivate Account'}
         footer={
           <>
             <Button variant="secondary" onClick={() => setModal(null)}>Cancel</Button>
-            <Button variant="danger" onClick={handleDeactivate}>Deactivate</Button>
+            <Button variant={modal?.action === 'deactivate' ? 'danger' : 'primary'}
+              onClick={handleConfirm}>
+              {modal?.action === 'deactivate' ? 'Deactivate' : 'Reactivate'}
+            </Button>
           </>
         }>
         <p style={{ fontSize: 14, color: 'var(--navy)' }}>
-          Are you sure you want to deactivate{' '}
-          <strong>{modal?.full_name}</strong>'s account?
-          They will not be able to log in until reactivated.
+          {modal?.action === 'deactivate' ? (
+            <>
+              Are you sure you want to deactivate{' '}
+              <strong>{modal?.user?.full_name}</strong>'s account?
+              They will not be able to log in until reactivated.
+            </>
+          ) : (
+            <>
+              Reactivate <strong>{modal?.user?.full_name}</strong>'s account?
+              They will be able to log in again immediately.
+            </>
+          )}
         </p>
       </Modal>
 
