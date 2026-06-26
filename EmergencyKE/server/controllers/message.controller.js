@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const { notify } = require('../utils/notifications');
+const { sendSMS } = require('../utils/sms');
 
 exports.getMessages = async (req, res) => {
   try {
@@ -39,16 +40,21 @@ exports.sendMessage = async (req, res) => {
 
     // ── Notify the OTHER party in this conversation ─────────
     const [incidentRow] = await db.query(
-      `SELECT reporter_id, assigned_volunteer FROM incidents WHERE incident_id = ?`,
+      `SELECT i.reporter_id, i.assigned_volunteer, i.location_source, i.reference_number,
+              u.phone AS reporter_phone
+       FROM incidents i
+       JOIN users u ON i.reporter_id = u.user_id
+       WHERE i.incident_id = ?`,
       [incident_id]
     );
 
     if (incidentRow.length) {
-      const { reporter_id, assigned_volunteer } = incidentRow[0];
+      const { reporter_id, assigned_volunteer, location_source,
+              reference_number, reporter_phone } = incidentRow[0];
       let recipientUserId = null;
 
       if (sender_id === reporter_id) {
-        // Reporter sent it → notify the assigned volunteer
+        // Reporter sent it → notify the assigned volunteer (who has the app)
         if (assigned_volunteer) {
           const [volUserRow] = await db.query(
             'SELECT user_id FROM volunteers WHERE volunteer_id = ?', [assigned_volunteer]
@@ -58,6 +64,14 @@ exports.sendMessage = async (req, res) => {
       } else {
         // Volunteer sent it → notify the reporter
         recipientUserId = reporter_id;
+
+        // USSD reporters have no in-app chat surface — deliver the message by SMS.
+        // One-way: they reply by calling the volunteer (number sent on acceptance).
+        if (location_source === 'ussd' && reporter_phone) {
+          sendSMS(reporter_phone,
+            `EmergencyKE [${reference_number}] message from your volunteer: ${content}`
+          );
+        }
       }
 
       if (recipientUserId) {

@@ -286,6 +286,27 @@ exports.cancelResponse = async (req, res) => {
       [id, req.user.id]
     );
 
+    // ── Notify the reporter that their volunteer cancelled ──
+    const [cancelInfo] = await db.query(
+      `SELECT i.reference_number, i.reporter_id, u.phone
+       FROM incidents i
+       JOIN users u ON i.reporter_id = u.user_id
+       WHERE i.incident_id = ?`,
+      [id]
+    );
+    if (cancelInfo[0]?.phone) {
+      sendSMS(cancelInfo[0].phone,
+        `EmergencyKE: The volunteer for your report (${cancelInfo[0].reference_number}) had to cancel. ` +
+        `Your report is back in the queue and being re-dispatched.`
+      );
+    }
+    if (cancelInfo[0]) {
+      notify(cancelInfo[0].reporter_id, 'volunteer_cancelled',
+        `The volunteer for your report (${cancelInfo[0].reference_number}) cancelled. It's back in the queue.`, id
+      );
+    }
+    // ── End notification ────────────────────────────────────
+
     res.json({ message: 'Response cancelled. Incident returned to queue.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -352,14 +373,23 @@ exports.respondToAlert = async (req, res) => {
          WHERE i.incident_id = ?`,
         [id]
       );
+
+      // The accepting volunteer is the logged-in user — fetch their contact details
+      const [volInfoRows] = await db.query(
+        'SELECT full_name, phone FROM users WHERE user_id = ?', [req.user.id]
+      );
+      const volName  = volInfoRows[0]?.full_name || 'A volunteer';
+      const volPhone = volInfoRows[0]?.phone || 'not available';
+
       if (reporterRows[0]?.phone && rows[0]) {
         sendSMS(reporterRows[0].phone,
-          `EmergencyKE: A volunteer has accepted your report (${rows[0].reference_number}) and is on the way.`
+          `EmergencyKE: ${volName} has accepted your report (${rows[0].reference_number}) ` +
+          `and is on the way. Call them directly: ${volPhone}`
         );
       }
       if (rows[0]) {
         notify(rows[0].reporter_id, 'volunteer_accepted',
-          `A volunteer has accepted your report (${rows[0].reference_number}) and is on the way.`, id
+          `${volName} has accepted your report (${rows[0].reference_number}) and is on the way.`, id
         );
       }
       // ── End notification ────────────────────────────────────
