@@ -243,7 +243,7 @@ export default function DashboardLayout({ title, children }) {
                       style={{
                         padding: '12px 14px',
                         borderBottom: '1px solid var(--line)',
-                        background: '#fef3c7',
+                        background: '#ffffff',
                         display: 'flex', alignItems: 'flex-start', gap: 8,
                       }}>
                       {/* Content — click to navigate + mark read + remove */}

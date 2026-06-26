@@ -101,36 +101,35 @@ export default function PublicDashboard() {
         <div
           className="public-active-banner"
           style={{
-            background: "#fef3c7",
-            border: "1px solid #f0d060",
-            borderLeft: "4px solid var(--gold)",
+            background: "#ffffff",
+            border: "1px solid var(--line)",
+            borderLeft: "3px solid var(--gold)",
             borderRadius: "var(--radius-md)",
-            padding: "14px 16px",
-            marginBottom: 20,
+            padding: "10px 14px",
+            marginBottom: 16,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
           }}
         >
           <div>
-            <p style={{ fontWeight: 700, fontSize: 14, color: "var(--navy)" }}>
-              You have an active incident
+            <p style={{ fontWeight: 700, fontSize: 13, color: "var(--navy)" }}>
+              Active incident
             </p>
-            <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
+            <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>
               {active.category?.replace("_", " ")} —{" "}
               <Badge status={active.status} />
             </p>
             {extraActiveCount > 0 && (
-              <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>
-                + {extraActiveCount} more active incident
-                {extraActiveCount > 1 ? "s" : ""}
+              <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
+                + {extraActiveCount} more active
               </p>
             )}
           </div>
           <div
             style={{
               display: "flex",
-              gap: 8,
+              gap: 6,
               alignItems: "center",
               flexWrap: "wrap",
               justifyContent: "flex-end",
@@ -141,14 +140,14 @@ export default function PublicDashboard() {
                 className="btn btn-ghost btn-sm"
                 onClick={() => navigate("/my-reports?filter=active")}
               >
-                View all active
+                View all
               </button>
             )}
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => navigate(`/incident/${active.incident_id}`)}
             >
-              View current
+              View
             </button>
           </div>
         </div>

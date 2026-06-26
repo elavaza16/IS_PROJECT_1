@@ -11,14 +11,13 @@ import Alert from "../../components/ui/Alert";
 const FIELDS = [
   { id:"full_name", label:"Full Name",     type:"text",  placeholder:"Jane Mwangi",      icon:MdPerson, autoComplete:"name",  autoFocus:true  },
   { id:"email",     label:"Email Address", type:"email", placeholder:"jane@example.com", icon:MdEmail,  autoComplete:"email"                  },
-  { id:"phone",     label:"Phone Number",  type:"tel",   placeholder:"+254712345678",    icon:MdPhone,  autoComplete:"tel",   hint:"Kenyan number" },
 ];
 
 const validate = (form) => {
   if (!form.full_name.trim())         return "Full name is required.";
   if (!form.email.includes("@"))      return "Enter a valid email address.";
-  if (!/^(\+254|0)[17]\d{8}$/.test(form.phone.replace(/\s/g,"")))
-                                      return "Enter a valid Kenyan phone number.";
+  if (!/^[17]\d{8}$/.test(form.phone.replace(/\s/g,"")))
+                                      return "Enter a valid Kenyan phone number (e.g. 712345678).";
   if (form.password.length < 8)       return "Password must be at least 8 characters.";
   if (form.password !== form.confirm) return "Passwords do not match.";
   return null;
@@ -44,7 +43,7 @@ const submit = async (e) => {
     await registerUser({
       full_name: form.full_name,
       email:     form.email,
-      phone:     form.phone,
+      phone:     '+254' + form.phone.replace(/\s/g, ''),
       password:  form.password,
     });
     setDone(true);
@@ -104,6 +103,24 @@ const submit = async (e) => {
             value={form[f.id]} onChange={handle}
           />
         ))}
+
+        {/* Phone — static +254 prefix */}
+        <div className="field">
+          <label className="field-label" htmlFor="phone">
+            Phone Number
+            <span className="field-hint">Kenyan number</span>
+          </label>
+          <div className="input-wrap">
+            <span className="input-phone-prefix">+254</span>
+            <input
+              id="phone" name="phone" type="tel"
+              placeholder="712345678"
+              value={form.phone} onChange={handle}
+              autoComplete="tel"
+              style={{ paddingLeft: 58 }}
+            />
+          </div>
+        </div>
 
         <InputField
           id="password" label="Password" type="password"

@@ -55,7 +55,7 @@ export default function ApplyVolunteer() {
     if (isDriver) {
       if (!form.drivers_licence.trim())   return "Driver's licence number is required.";
       if (!form.number_plate.trim())      return 'Vehicle number plate is required.';
-      if (!form.vehicle_insurance.trim()) return 'Vehicle insurance number is required.';
+      if (!form.vehicle_insurance.trim()) return 'Chassis number is required.';
     }
     if (!form.declaration_signed) return 'You must agree to the declaration.';
     return null;
@@ -231,12 +231,12 @@ export default function ApplyVolunteer() {
 
               <div className="field">
                 <label className="field-label">
-                  Vehicle Insurance Number <span style={{ color: 'var(--red)' }}>*</span>
+                  Chassis Number <span style={{ color: 'var(--red)' }}>*</span>
                 </label>
                 <div className="input-wrap">
                   <span className="input-icon"><MdDirectionsCar size={15} /></span>
                   <input name="vehicle_insurance" type="text"
-                    placeholder="e.g. INS2024987654"
+                    placeholder="e.g. KNHCE51H2C2123456"
                     value={form.vehicle_insurance} onChange={handle} />
                 </div>
               </div>

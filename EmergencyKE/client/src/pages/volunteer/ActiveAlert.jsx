@@ -232,11 +232,11 @@ const isTakenByOther = incident?.status === 'in_progress' && !incident?.is_assig
                       <div style={{ display: 'flex', gap: 8 }}>
                         <Button variant="danger" loading={cancelling}
                           onClick={handleCancelResponse} style={{ flex: 1 }}>
-                          Yes, cancel
+                          Yes
                         </Button>
                         <Button variant="secondary"
                           onClick={() => setCancelConfirm(false)} style={{ flex: 1 }}>
-                          Keep responding
+                          No
                         </Button>
                       </div>
                     </div>

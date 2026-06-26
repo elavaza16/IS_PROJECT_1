@@ -11,6 +11,7 @@ html, body, #root {
   color: var(--navy);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: contain;
 }
 
 button { cursor: pointer; font-family: var(--font-base); }
