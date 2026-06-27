@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { MdSend } from "react-icons/md";
-import { getMessages, sendMessage } from "../../services/api";
+import { getMessages, sendMessage, cancelIncident } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Badge from "../../components/ui/Badge";
 import Alert from "../../components/ui/Alert";
 import API from "../../services/api";
+
+const CANCELLABLE = ['reported', 'dispatching', 'in_progress'];
 
 export default function ActiveIncident() {
   const { id }         = useParams();
@@ -14,17 +16,50 @@ export default function ActiveIncident() {
   const { user }       = useAuth();
   const bottomRef      = useRef(null);
 
-  const [incident,  setIncident]  = useState(null);
-  const [messages,  setMessages]  = useState([]);
-  const [text,      setText]      = useState('');
-  const [sending,   setSending]   = useState(false);
+  const [incident,          setIncident]          = useState(null);
+  const [messages,          setMessages]          = useState([]);
+  const [text,              setText]              = useState('');
+  const [sending,           setSending]           = useState(false);
+  const [cancelling,        setCancelling]        = useState(false);
+  const [volunteerCancelled, setVolunteerCancelled] = useState(false);
   const justReported = location.state?.justReported;
 
-  // Fetch incident
-  useEffect(() => {
+  // Track the previous status so we can detect a volunteer dropping the response
+  const prevStatusRef = useRef(null);
+
+  const isReporter   = incident && user && incident.reporter_id === user.id;
+  const isTerminal   = incident && ['resolved', 'cancelled'].includes(incident.status);
+  const canCancel    = isReporter && incident && CANCELLABLE.includes(incident.status);
+
+  const loadIncident = () =>
     API.get(`/incidents/${id}`)
-      .then(({ data }) => setIncident(data))
+      .then(({ data }) => {
+        const prev = prevStatusRef.current;
+        // Volunteer cancelled: was being handled, now back to 'reported' unassigned.
+        if (
+          prev &&
+          ['dispatching', 'in_progress'].includes(prev) &&
+          data.status === 'reported' &&
+          !data.assigned_volunteer
+        ) {
+          setVolunteerCancelled(true);
+        }
+        // A new volunteer picked it back up — clear the notice.
+        if (data.status === 'in_progress' || data.status === 'dispatching') {
+          setVolunteerCancelled(false);
+        }
+        prevStatusRef.current = data.status;
+        setIncident(data);
+      })
       .catch(console.error);
+
+  // Fetch incident + poll every 10s so status changes (volunteer cancelling,
+  // a new volunteer accepting, resolution) show up live.
+  useEffect(() => {
+    loadIncident();
+    const timer = setInterval(loadIncident, 10000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Poll messages every 5 seconds
@@ -57,6 +92,21 @@ export default function ActiveIncident() {
     }
   };
 
+  const cancelReport = async () => {
+    if (!window.confirm(
+      'Cancel this report? Any responding volunteer will be told to stand down. This cannot be undone.'
+    )) return;
+    setCancelling(true);
+    try {
+      await cancelIncident(id);
+      await loadIncident();        // reflect the cancelled status immediately
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <DashboardLayout title="Active Incident">
       <div style={{ maxWidth: 600, margin: '0 auto' }}>
@@ -64,6 +114,19 @@ export default function ActiveIncident() {
         {justReported && (
           <Alert type="success">
             Emergency reported successfully! Reference: <strong>{location.state?.reference}</strong>
+          </Alert>
+        )}
+
+        {volunteerCancelled && (
+          <Alert type="warning">
+            The volunteer who was responding had to cancel. Your report is back in
+            the queue and is being re-dispatched to other volunteers.
+          </Alert>
+        )}
+
+        {incident?.status === 'cancelled' && (
+          <Alert type="error">
+            This report has been cancelled. No volunteers are responding.
           </Alert>
         )}
 
@@ -91,6 +154,20 @@ export default function ActiveIncident() {
                 ))}
               </div>
             </div>
+
+            {/* Reporter-only: cancel a false / no-longer-needed report */}
+            {canCancel && (
+              <div style={{ padding: '0 16px 16px', textAlign: 'right' }}>
+                <button
+                  className="btn btn-sm"
+                  onClick={cancelReport}
+                  disabled={cancelling}
+                  style={{ background: 'var(--red)', color: '#fff', border: 'none',
+                    cursor: cancelling ? 'default' : 'pointer' }}>
+                  {cancelling ? 'Cancelling…' : 'Cancel Report'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -135,17 +212,20 @@ export default function ActiveIncident() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Message input */}
+          {/* Message input — disabled once the incident is resolved or cancelled */}
           <form onSubmit={send} style={{ display: 'flex', gap: 10,
             padding: '12px 16px', borderTop: '1px solid var(--line)' }}>
             <input
-              type="text" placeholder="Type a message..."
+              type="text"
+              placeholder={isTerminal ? 'This incident is closed.' : 'Type a message...'}
               value={text} onChange={e => setText(e.target.value)}
+              disabled={isTerminal}
               style={{ flex: 1, padding: '9px 12px',
                 border: '1.5px solid var(--line)', borderRadius: 'var(--radius-md)',
-                fontSize: 14, outline: 'none', fontFamily: 'var(--font-base)' }}
+                fontSize: 14, outline: 'none', fontFamily: 'var(--font-base)',
+                background: isTerminal ? 'var(--grey-lt)' : '#fff' }}
             />
-            <button type="submit" disabled={sending || !text.trim()}
+            <button type="submit" disabled={sending || !text.trim() || isTerminal}
               style={{ background: 'var(--red)', color: '#fff', border: 'none',
                 borderRadius: 'var(--radius-md)', padding: '0 16px',
                 cursor: 'pointer', display: 'flex', alignItems: 'center' }}>

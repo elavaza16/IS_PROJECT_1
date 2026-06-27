@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { MdOutlineEmergency, MdLocationOn, MdCalendarToday } from "react-icons/md";
-import { getMyIncidents } from "../../services/api";
+import { getMyIncidents, cancelIncident } from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Badge from "../../components/ui/Badge";
 
@@ -11,19 +11,24 @@ const SEVERITY_COLORS = {
   low:    { bg: 'var(--green-xlt)',text: 'var(--green)'  },
 };
 
+const CANCELLABLE = ['reported', 'dispatching', 'in_progress'];
+
 export default function MyReports() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [incidents, setIncidents] = useState([]);
-  const [loading,   setLoading]   = useState(true);
+  const [incidents,   setIncidents]   = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [cancellingId, setCancellingId] = useState(null);
 
   const filter = searchParams.get("filter") || "all";
 
-  useEffect(() => {
+  const refresh = () =>
     getMyIncidents()
       .then(({ data }) => setIncidents(data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      .catch(console.error);
+
+  useEffect(() => {
+    refresh().finally(() => setLoading(false));
   }, []);
 
   const unique = useMemo(() =>
@@ -37,6 +42,22 @@ export default function MyReports() {
       : unique,
     [filter, unique]
   );
+
+  const cancelReport = async (e, incId) => {
+    e.stopPropagation();
+    if (!window.confirm(
+      'Cancel this report? Any responding volunteer will be told to stand down. This cannot be undone.'
+    )) return;
+    setCancellingId(incId);
+    try {
+      await cancelIncident(incId);
+      await refresh();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   return (
     <DashboardLayout title="My Reports">
@@ -89,6 +110,7 @@ export default function MyReports() {
           {filtered.map(inc => {
             const sev = SEVERITY_COLORS[inc.severity] || SEVERITY_COLORS.medium;
             const isActive = ['reported','dispatching','in_progress'].includes(inc.status);
+            const canCancel = CANCELLABLE.includes(inc.status);
             return (
               <div key={inc.incident_id}
                 style={{
@@ -146,12 +168,23 @@ export default function MyReports() {
                   </div>
                 </div>
 
-                {/* Right — action */}
-                <button className="btn btn-secondary btn-sm"
-                  style={{ flexShrink: 0 }}
-                  onClick={() => navigate(`/incident/${inc.incident_id}`)}>
-                  View
-                </button>
+                {/* Right — actions */}
+                <div style={{ display: 'flex', flexDirection: 'column',
+                  gap: 6, flexShrink: 0 }}>
+                  <button className="btn btn-secondary btn-sm"
+                    onClick={() => navigate(`/incident/${inc.incident_id}`)}>
+                    View
+                  </button>
+                  {canCancel && (
+                    <button className="btn btn-sm"
+                      disabled={cancellingId === inc.incident_id}
+                      onClick={(e) => cancelReport(e, inc.incident_id)}
+                      style={{ background: 'var(--red)', color: '#fff', border: 'none',
+                        cursor: cancellingId === inc.incident_id ? 'default' : 'pointer' }}>
+                      {cancellingId === inc.incident_id ? '…' : 'Cancel'}
+                    </button>
+                  )}
+                </div>
 
               </div>
             );

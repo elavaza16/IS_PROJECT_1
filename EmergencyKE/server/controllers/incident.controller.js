@@ -261,6 +261,7 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
+// Volunteer abandons a response — incident returns to the shared queue.
 exports.cancelResponse = async (req, res) => {
   const { id } = req.params;
   try {
@@ -309,6 +310,80 @@ exports.cancelResponse = async (req, res) => {
 
     res.json({ message: 'Response cancelled. Incident returned to queue.' });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Reporter cancels their OWN report (e.g. a false alarm). Terminal — sets the
+// incident to 'cancelled', expires any pending alerts, and (if a volunteer had
+// already accepted) tells them to stand down. This is distinct from
+// cancelResponse above, which is the VOLUNTEER abandoning a response.
+exports.cancelIncident = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await db.query(
+      `SELECT status, reporter_id, reference_number, assigned_volunteer
+       FROM incidents WHERE incident_id = ?`,
+      [id]
+    );
+    if (!rows.length)
+      return res.status(404).json({ error: 'Incident not found.' });
+
+    const incident = rows[0];
+
+    // Server-verified: only the reporter who created it may cancel it.
+    if (incident.reporter_id !== req.user.id) {
+      return res.status(403).json({ error: 'You can only cancel your own report.' });
+    }
+
+    // Nothing to cancel if it's already finished.
+    if (['resolved', 'cancelled'].includes(incident.status)) {
+      return res.status(409).json({ error: `This report is already ${incident.status}.` });
+    }
+
+    // Expire any alerts still pending out to volunteers.
+    await db.query(
+      `UPDATE dispatch_alerts SET status = 'expired'
+       WHERE incident_id = ? AND status = 'pending'`,
+      [id]
+    );
+
+    await db.query(
+      `UPDATE incidents SET status = 'cancelled', updated_at = NOW()
+       WHERE incident_id = ?`,
+      [id]
+    );
+
+    await db.query(
+      `INSERT INTO incident_logs (incident_id, action, new_value, performed_by)
+       VALUES (?, 'reporter_cancelled', 'cancelled', ?)`,
+      [id, req.user.id]
+    );
+
+    // If a volunteer had already accepted, tell them to stand down.
+    if (incident.assigned_volunteer) {
+      const [volRows] = await db.query(
+        `SELECT u.user_id, u.phone FROM volunteers v
+         JOIN users u ON v.user_id = u.user_id
+         WHERE v.volunteer_id = ?`,
+        [incident.assigned_volunteer]
+      );
+      if (volRows[0]) {
+        if (volRows[0].phone) {
+          sendSMS(volRows[0].phone,
+            `EmergencyKE: The reporter has CANCELLED report ${incident.reference_number}. ` +
+            `You can stand down — no response needed.`
+          );
+        }
+        notify(volRows[0].user_id, 'report_cancelled',
+          `The reporter cancelled report ${incident.reference_number}. You can stand down.`, id
+        );
+      }
+    }
+
+    res.json({ message: 'Report cancelled.' });
+  } catch (err) {
+    console.error('Cancel incident error:', err);
     res.status(500).json({ error: err.message });
   }
 };

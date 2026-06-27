@@ -24,6 +24,7 @@ export const reportIncident = (data)         => API.post('/incidents', data);
 export const getIncidents   = ()             => API.get('/incidents');
 export const getMyIncidents = ()             => API.get('/incidents/mine');
 export const updateStatus   = (id, status)   => API.patch(`/incidents/${id}/status`, { status });
+export const cancelIncident = (id)           => API.patch(`/incidents/${id}/cancel`);
 
 //Volunteers 
 export const applyVolunteer = (data) => API.post('/volunteers/apply', data);
