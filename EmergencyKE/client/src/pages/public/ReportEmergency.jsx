@@ -16,11 +16,11 @@ import Alert from "../../components/ui/Alert";
 import { reverseGeocode } from "../../utils/geocode";
 
 const CATEGORIES = [
-  { value: 'medical_distress', label: 'Medical Emergency', color: '#ef4444', Icon: MdLocalHospital },
-  { value: 'road_accident', label: 'Road Accident', color: '#f97316', Icon: MdDirectionsCar },
-  { value: 'fire_hazard', label: 'Fire Hazard', color: '#dc2626', Icon: MdLocalFireDepartment },
-  { value: 'security_threat', label: 'Security Threat', color: '#7c3aed', Icon: MdSecurity },
-  { value: 'other', label: 'Other Emergency', color: '#6b7280', Icon: MdWarning },
+  { value: 'medical_distress', label: 'Medical Emergency', Icon: MdLocalHospital },
+  { value: 'road_accident', label: 'Road Accident',  Icon: MdDirectionsCar },
+  { value: 'fire_hazard', label: 'Fire Hazard', Icon: MdLocalFireDepartment },
+  { value: 'security_threat', label: 'Security Threat', Icon: MdSecurity },
+  { value: 'other', label: 'Other Emergency', Icon: MdWarning },
 ];
 
 export default function ReportEmergency() {

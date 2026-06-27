@@ -15,14 +15,12 @@ export default function PublicDashboard() {
   const navigate = useNavigate();
   const { user, loginUser } = useAuth();
   const [incidents, setIncidents] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [roleUpgraded, setRoleUpgraded] = useState(false);
 
   useEffect(() => {
     getMyIncidents()
       .then(({ data }) => setIncidents(data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      .catch(console.error);
   }, []);
 
   // Check if role has been upgraded since last login
@@ -53,10 +51,6 @@ export default function PublicDashboard() {
   );
 
   const extraActiveCount = Math.max(activeIncidents.length - 1, 0);
-
-  const recentReports = uniqueIncidents
-    .filter((i) => i.incident_id !== active?.incident_id)
-    .slice(0, 5);
 
   return (
     <DashboardLayout title="Dashboard">
@@ -103,36 +97,30 @@ export default function PublicDashboard() {
           style={{
             background: "#ffffff",
             border: "1px solid var(--line)",
-            borderLeft: "3px solid var(--gold)",
             borderRadius: "var(--radius-md)",
-            padding: "10px 14px",
+            padding: "8px 12px",
             marginBottom: 16,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            flexWrap: "nowrap",
+            gap: 8,
           }}
         >
-          <div>
-            <p style={{ fontWeight: 700, fontSize: 13, color: "var(--navy)" }}>
-              Active incident
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontWeight: 700, fontSize: 12, color: "var(--navy)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              Active incident{extraActiveCount > 0 ? ` (+${extraActiveCount} more)` : ""}
             </p>
             <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>
-              {active.category?.replace("_", " ")} —{" "}
-              <Badge status={active.status} />
+              {active.category?.replace("_", " ")} — <Badge status={active.status} />
             </p>
-            {extraActiveCount > 0 && (
-              <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
-                + {extraActiveCount} more active
-              </p>
-            )}
           </div>
           <div
             style={{
               display: "flex",
               gap: 6,
               alignItems: "center",
-              flexWrap: "wrap",
-              justifyContent: "flex-end",
+              flexShrink: 0,
             }}
           >
             {extraActiveCount > 0 && (
@@ -147,7 +135,7 @@ export default function PublicDashboard() {
               className="btn btn-secondary btn-sm"
               onClick={() => navigate(`/incident/${active.incident_id}`)}
             >
-              View
+              View current
             </button>
           </div>
         </div>
@@ -229,55 +217,6 @@ export default function PublicDashboard() {
         )}
       </div>
 
-      {/* Recent reports */}
-      {loading && (
-        <p style={{ fontSize: 13, color: "var(--muted)" }}>
-          Loading reports...
-        </p>
-      )}
-
-      {recentReports.length > 0 && (
-        <div className="table-card" style={{ marginTop: 24 }}>
-          <div className="table-header">
-            <span className="table-title">Recent Reports</span>
-          </div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ minWidth: 620 }}>
-              <thead>
-                <tr>
-                  <th>Reference</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentReports.map((i) => (
-                  <tr key={i.incident_id}>
-                    <td style={{ fontFamily: "monospace", fontSize: 12 }}>
-                      {i.reference_number}
-                    </td>
-                    <td>{i.category?.replace("_", " ")}</td>
-                    <td>
-                      <Badge status={i.status} />
-                    </td>
-                    <td>{new Date(i.reported_at).toLocaleDateString()}</td>
-                    <td>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => navigate(`/incident/${i.incident_id}`)}
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </DashboardLayout>
   );
 }
