@@ -1,8 +1,9 @@
 const router = require('express').Router();
 const { verifyToken, requireRole } = require('../middleware/auth.middleware');
 const ctrl = require('../controllers/incident.controller');
+const { incidentLimiter } = require('../middleware/rateLimiter');
 
-router.post('/',             verifyToken, ctrl.reportIncident);
+router.post('/',             verifyToken, incidentLimiter, ctrl.reportIncident);
 router.get('/',              verifyToken, ctrl.getIncidents);
 router.get('/mine',          verifyToken, ctrl.getMyIncidents);
 router.get('/:id',           verifyToken, ctrl.getIncident);

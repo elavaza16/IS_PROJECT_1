@@ -8,12 +8,13 @@ const {
   resetPassword,
 } = require('../controllers/auth.controller');
 const { verifyToken } = require('../middleware/auth.middleware');
+const { authLimiter, registerLimiter } = require('../middleware/rateLimiter');
 
-router.post('/register',        register);
-router.post('/login',           login);
+router.post('/register',        registerLimiter, register);
+router.post('/login',           authLimiter,     login);
 router.get('/verify-email',     verifyEmail);
-router.get('/me',               verifyToken, getMe);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password',  resetPassword);
+router.get('/me',               verifyToken,     getMe);
+router.post('/forgot-password', authLimiter,     forgotPassword);
+router.post('/reset-password',  authLimiter,     resetPassword);
 
 module.exports = router;
