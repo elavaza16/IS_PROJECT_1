@@ -2,7 +2,7 @@ const db = require('../config/db');
 
 exports.applyVolunteer = async (req, res) => {
   const {
-    tier, general_area, latitude, longitude,
+    tier,latitude, longitude,
     declaration_signed, national_id, drivers_licence,
     number_plate, vehicle_insurance, first_aid_cert,
   } = req.body;
@@ -24,7 +24,7 @@ exports.applyVolunteer = async (req, res) => {
 
     const [result] = await db.query(
       `INSERT INTO volunteers
-        (user_id, tier, general_area, latitude, longitude,
+        (user_id, tier,latitude, longitude,
          declaration_signed, declaration_signed_at)
        VALUES (?,?,?,?,?,?,NOW())`,
       [user_id, tier, general_area, latitude, longitude, declaration_signed ? 1 : 0]

@@ -108,7 +108,6 @@ export default function AdminVolunteers() {
                     <td style={{ textTransform: 'capitalize' }}>
                       {v.tier?.replace('_', ' ')}
                     </td>
-                    <td style={{ fontSize: 12 }}>{v.general_area || '—'}</td>
                     <td>
                       <span style={{
                         color: v.is_complete ? 'var(--green)' : 'var(--red)',

@@ -11,7 +11,6 @@ export default function ApplyVolunteer() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     tier:               '',
-    general_area:       '',
     latitude:           null,
     longitude:          null,
     national_id:        '',
@@ -49,7 +48,6 @@ export default function ApplyVolunteer() {
   const validate = () => {
     if (!form.tier)                return 'Please select your volunteer tier.';
     if (!form.national_id.trim())  return 'National ID number is required.';
-    if (!form.general_area.trim()) return 'General area is required.';
     if (isResponder && !form.first_aid_cert.trim())
       return 'First aid certificate number is required.';
     if (isDriver) {
@@ -247,18 +245,6 @@ export default function ApplyVolunteer() {
           <div style={{ borderTop: '1px solid var(--line)', margin: '20px 0',
             paddingTop: 20, fontWeight: 700, fontSize: 14, color: 'var(--navy)' }}>
             Location
-          </div>
-
-          <div className="field">
-            <label className="field-label">
-              General Area <span style={{ color: 'var(--red)' }}>*</span>
-            </label>
-            <div className="input-wrap">
-              <span className="input-icon"><MdLocationOn size={15} /></span>
-              <input name="general_area" type="text"
-                placeholder="e.g. Westlands, Nairobi"
-                value={form.general_area} onChange={handle} />
-            </div>
           </div>
 
           <div className="field">

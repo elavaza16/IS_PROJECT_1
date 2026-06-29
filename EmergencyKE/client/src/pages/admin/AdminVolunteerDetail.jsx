@@ -93,7 +93,6 @@ export default function AdminVolunteerDetail() {
               ['Email',        vol?.email],
               ['Phone',        vol?.phone],
               ['Tier',         vol?.tier?.replace('_', ' ')],
-              ['General Area', vol?.general_area || '—'],
               ['Applied',      vol?.applied_at
                 ? new Date(vol.applied_at).toLocaleDateString() : '—'],
               ['Approved',     vol?.approved_at
