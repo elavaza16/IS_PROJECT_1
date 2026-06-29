@@ -94,8 +94,8 @@ export default function Login() {
       </div>
 
       <div className="auth-ussd">
-        <p className="auth-ussd-title">Dial <strong>#####</strong> to report</p>
-        <p className="auth-ussd-sub">Any phone · All Kenyan networks</p>
+        <p className="auth-ussd-title text-center">Dial <strong>*384*17208#</strong> to report</p>
+        <p className="auth-ussd-sub text-center">Any phone · All Kenyan networks</p>
       </div>
 
       <p className="auth-footer">
