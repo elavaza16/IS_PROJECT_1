@@ -131,8 +131,11 @@ exports.login = async (req, res) => {
 exports.getMe = async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT user_id, full_name, email, phone, role, is_active
-       FROM users WHERE user_id = ?`,
+      `SELECT u.user_id, u.full_name, u.email, u.phone, u.role, u.is_active,
+              v.on_duty
+      FROM users u
+      LEFT JOIN volunteers v ON v.user_id = u.user_id
+      WHERE u.user_id = ?`,
       [req.user.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'User not found.' });

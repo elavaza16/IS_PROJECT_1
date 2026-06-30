@@ -67,7 +67,7 @@ exports.reportIncident = async (req, res) => {
     const [volunteers] = await db.query(
       `SELECT v.volunteer_id, v.latitude, v.longitude, u.phone, u.full_name
        FROM volunteers v JOIN users u ON v.user_id = u.user_id
-       WHERE v.status = 'active' AND v.latitude IS NOT NULL
+       WHERE v.status = 'active' AND v.on_duty = 1 AND v.latitude IS NOT NULL
        AND u.user_id != ?`,
       [reporter_id]
     );

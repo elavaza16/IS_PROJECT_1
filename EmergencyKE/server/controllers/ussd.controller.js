@@ -102,7 +102,7 @@ exports.handleUssd = async (req, res) => {
           `SELECT v.volunteer_id, u.phone
            FROM volunteers v
            JOIN users u ON v.user_id = u.user_id
-           WHERE v.status = 'active'`
+           WHERE v.status = 'active' AND v.on_duty=1`
         );
 
         for (const vol of activeVolunteers) {
