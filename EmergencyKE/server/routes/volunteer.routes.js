@@ -6,6 +6,6 @@ const { volunteerApplyLimiter } = require('../middleware/rateLimiter');
 
 router.post('/apply',    verifyToken, volunteerApplyLimiter, ctrl.applyVolunteer);
 router.get('/history',   verifyToken,                        ctrl.getHistory);
-router.post('/duty',     verifyToken,                        ctrl.toggleDuty);
+router.patch('/duty',     verifyToken,                        ctrl.toggleDuty);
 
 module.exports = router;
