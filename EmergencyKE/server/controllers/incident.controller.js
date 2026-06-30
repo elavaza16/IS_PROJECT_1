@@ -165,6 +165,19 @@ exports.getIncidents = async (req, res) => {
       params.push(req.user.id);
     }
 
+    // Don't resurface incidents this volunteer already declined — it stays
+    // visible to every other volunteer, just not back on this one's queue.
+    query += `
+      AND NOT EXISTS (
+        SELECT 1 FROM dispatch_alerts da
+        JOIN volunteers v ON da.volunteer_id = v.volunteer_id
+        WHERE da.incident_id = i.incident_id
+          AND v.user_id = ?
+          AND da.status = 'declined'
+      )
+    `;
+    params.push(req.user.id);
+
     query += ' ORDER BY i.reported_at DESC';
     const [rows] = await db.query(query, params);
     res.json(rows);
@@ -176,8 +189,12 @@ exports.getIncidents = async (req, res) => {
 exports.getMyIncidents = async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT * FROM incidents WHERE reporter_id = ?
-       ORDER BY reported_at DESC`,
+      `SELECT i.*, vu.full_name as volunteer_name, vu.phone as volunteer_phone
+       FROM incidents i
+       LEFT JOIN volunteers v ON i.assigned_volunteer = v.volunteer_id
+       LEFT JOIN users vu ON v.user_id = vu.user_id
+       WHERE i.reporter_id = ?
+       ORDER BY i.reported_at DESC`,
       [req.user.id]
     );
     res.json(rows);
@@ -190,9 +207,12 @@ exports.getIncident = async (req, res) => {
   const { id } = req.params;
   try {
     const [rows] = await db.query(
-      `SELECT i.*, u.full_name as reporter_name, u.phone as reporter_phone
+      `SELECT i.*, u.full_name as reporter_name, u.phone as reporter_phone,
+              vu.full_name as volunteer_name, vu.phone as volunteer_phone
        FROM incidents i
        JOIN users u ON i.reporter_id = u.user_id
+       LEFT JOIN volunteers v ON i.assigned_volunteer = v.volunteer_id
+       LEFT JOIN users vu ON v.user_id = vu.user_id
        WHERE i.incident_id = ?`,
       [id]
     );
@@ -412,6 +432,18 @@ exports.respondToAlert = async (req, res) => {
         'SELECT volunteer_id FROM volunteers WHERE user_id = ?', [req.user.id]
       );
       const volunteerId = volRows[0]?.volunteer_id;
+
+      // A volunteer can't be in two places at once — block accepting a new
+      // incident while still assigned to one that's in progress.
+      const [activeRows] = await db.query(
+        `SELECT incident_id FROM incidents WHERE assigned_volunteer = ? AND status = 'in_progress'`,
+        [volunteerId]
+      );
+      if (activeRows.length) {
+        return res.status(409).json({
+          error: 'You are already responding to another incident. Resolve or cancel it before accepting a new one.'
+        });
+      }
 
       await db.query(
         `UPDATE dispatch_alerts SET status = 'accepted', responded_at = NOW()

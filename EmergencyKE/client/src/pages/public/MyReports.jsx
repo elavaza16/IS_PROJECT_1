@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MdOutlineEmergency, MdLocationOn, MdCalendarToday } from "react-icons/md";
+import { MdOutlineEmergency, MdLocationOn, MdCalendarToday, MdPerson } from "react-icons/md";
 import { getMyIncidents, cancelIncident } from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Badge from "../../components/ui/Badge";
@@ -166,6 +166,15 @@ export default function MyReports() {
                       })}
                     </span>
                   </div>
+
+                  {/* Row 4 — responding volunteer, once assigned */}
+                  {inc.volunteer_name && (
+                    <div style={{ display: 'flex', alignItems: 'center',
+                      gap: 4, fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
+                      <MdPerson size={13} color="var(--navy)" />
+                      {inc.volunteer_name}{inc.volunteer_phone ? ` · ${inc.volunteer_phone}` : ''}
+                    </div>
+                  )}
                 </div>
 
                 {/* Right — actions */}

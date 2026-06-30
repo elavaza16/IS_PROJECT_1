@@ -42,7 +42,7 @@ export default function ForgotPassword() {
 
   return (
     <AuthCard subtitle="Reset your password">
-      <Alert type="info">
+      <Alert>
         Enter your registered email address and we will send you a password reset link.
       </Alert>
 

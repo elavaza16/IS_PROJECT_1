@@ -23,12 +23,14 @@ const registerLimiter = rateLimit({
   message: message('registration'),
 });
 
-// 10 incident reports per hour per IP — each report triggers an SMS
+// 3 incident reports per hour per reporter (not per IP) — each report triggers an SMS.
+// Keyed by authenticated user id; verifyToken runs before this middleware on the route.
 const incidentLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 10,
+  max: 3,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => String(req.user.id),
   message: message('incident report'),
 });
 

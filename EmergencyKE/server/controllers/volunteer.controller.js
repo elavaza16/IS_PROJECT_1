@@ -24,10 +24,10 @@ exports.applyVolunteer = async (req, res) => {
 
     const [result] = await db.query(
       `INSERT INTO volunteers
-        (user_id, tier,latitude, longitude,
+        (user_id, tier, latitude, longitude,
          declaration_signed, declaration_signed_at)
-       VALUES (?,?,?,?,?,?,NOW())`,
-      [user_id, tier, general_area, latitude, longitude, declaration_signed ? 1 : 0]
+       VALUES (?,?,?,?,?,NOW())`,
+      [user_id, tier, latitude, longitude, declaration_signed ? 1 : 0]
     );
     const volunteer_id = result.insertId;
 

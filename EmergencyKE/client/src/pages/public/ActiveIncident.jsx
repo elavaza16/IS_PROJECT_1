@@ -155,6 +155,20 @@ export default function ActiveIncident() {
               </div>
             </div>
 
+            {/* Responding volunteer's contact details, once assigned */}
+            {incident.volunteer_name && (
+              <div style={{ margin: '0 16px 16px', padding: 12,
+                background: 'var(--grey-lt)', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
+                  Responding Volunteer
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{incident.volunteer_name}</div>
+                <div style={{ fontSize: 13, color: 'var(--navy)' }}>
+                  {incident.volunteer_phone || 'Phone not available'}
+                </div>
+              </div>
+            )}
+
             {/* Reporter-only: cancel a false / no-longer-needed report */}
             {canCancel && (
               <div style={{ padding: '0 16px 16px', textAlign: 'right' }}>

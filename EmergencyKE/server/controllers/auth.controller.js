@@ -5,11 +5,16 @@ const crypto = require('crypto');
 const { sendVerificationEmail } = require('../utils/email');
 const { sendPasswordResetEmail } = require('../utils/email');
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 exports.register = async (req, res) => {
   const { full_name, email, phone, password } = req.body;
 
   if (!full_name || !email || !phone || !password)
     return res.status(400).json({ error: 'All fields are required.' });
+
+  if (!EMAIL_REGEX.test(email))
+    return res.status(400).json({ error: 'Invalid email format.' });
 
   try {
     const [existing] = await db.query(

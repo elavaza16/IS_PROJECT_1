@@ -55,10 +55,12 @@ exports.handleUssd = async (req, res) => {
       const category = CATEGORIES[steps[0]];
       const locationText = steps[1];
       const severityMap = { '1': 'low', '2': 'medium', '3': 'high' };
-      const severity = severityMap[steps[2]] || 'medium';
+      const severity = severityMap[steps[2]];
 
       if (!category) {
         response = `END Session expired. Please dial again.`;
+      } else if (!severity) {
+        response = `END Invalid choice. Please dial again.`;
       } else {
         // Find or create a user record for this phone number
         let [users] = await db.query(
