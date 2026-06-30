@@ -47,7 +47,6 @@ export const getVolunteer       = (id)          => API.get(`/admin/volunteers/${
 export const approveVolunteer   = (id)          => API.patch(`/admin/volunteers/${id}/approve`);
 export const rejectVolunteer    = (id, data)    => API.patch(`/admin/volunteers/${id}/reject`, data);
 export const suspendVolunteer   = (id, data)    => API.patch(`/admin/volunteers/${id}/suspend`, data);
-export const toggleDuty = (data) => API.patch('/volunteers/duty', data);
 
 export const getAllUsers        = ()             => API.get('/admin/users');
 export const deactivateUser     = (id)          => API.patch(`/admin/users/${id}/deactivate`);

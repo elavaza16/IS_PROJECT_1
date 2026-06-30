@@ -2,46 +2,24 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MdLocationOn,
-  MdNotificationsActive,
-  MdDirectionsRun,
-  MdAssignment,
-  MdCheckCircle,
+  MdNotificationsActive, MdDirectionsRun, MdAssignment, MdCheckCircle,
 } from "react-icons/md";
 import { useAuth } from "../../context/AuthContext";
-import { getMyResponses, toggleDuty } from "../../services/api";
+import { getMyResponses } from "../../services/api";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Badge from "../../components/ui/Badge";
 import API from "../../services/api";
 
 export default function VolunteerDashboard() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [alerts, setAlerts] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Duty states
-  const [onDuty, setOnDuty] = useState(false);
-  const [togglingDuty, setTogglingDuty] = useState(false);
-  const [dutyErr, setDutyErr] = useState('');
-
-  // Fetch initial duty status and incident history on mount
-  useEffect(() => {
-    API.get('/auth/me')
-      .then(({ data }) => {
-        if (data && typeof data.on_duty !== 'undefined') {
-          setOnDuty(!!data.on_duty);
-        }
-      })
-      .catch(() => {});
-
-    getMyResponses()
-      .then(({ data }) => setHistory(data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const navigate       = useNavigate();
+  const { user }       = useAuth();
+  const [alerts,    setAlerts]    = useState([]);
+  const [history,   setHistory]   = useState([]);
+  const [loading,   setLoading]   = useState(true);
 
   // Poll for new alerts every 10 seconds
+  // Only ever shows unclaimed incidents — reported/dispatching — never
+  // in_progress or resolved, since those have already been claimed or closed.
   useEffect(() => {
     const load = () => {
       API.get('/incidents?excludeOwn=true&status=reported,dispatching')
@@ -53,77 +31,18 @@ export default function VolunteerDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Duty Toggle Handler
-  const handleToggleDuty = () => {
-    setDutyErr('');
-    if (onDuty) {
-      // Going off duty — no GPS needed
-      setTogglingDuty(true);
-      toggleDuty({ on_duty: false })
-        .then(() => setOnDuty(false))
-        .catch(err => setDutyErr(err.response?.data?.error || 'Failed to go off duty.'))
-        .finally(() => setTogglingDuty(false));
-    } else {
-      // Going on duty — need fresh GPS
-      setTogglingDuty(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          toggleDuty({
-            on_duty: true,
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-          })
-            .then(() => setOnDuty(true))
-            .catch(err => setDutyErr(err.response?.data?.error || 'Failed to go on duty.'))
-            .finally(() => setTogglingDuty(false));
-        },
-        () => {
-          setDutyErr('Could not get your location. Please enable location access.');
-          setTogglingDuty(false);
-        }
-      );
-    }
-  };
+  useEffect(() => {
+    getMyResponses()
+      .then(({ data }) => setHistory(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const active = history.filter(i => i.status === 'in_progress');
   const resolved = history.filter(i => i.status === 'resolved');
 
   return (
     <DashboardLayout title="Volunteer Dashboard">
-
-      {/* Duty toggle */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: onDuty ? '#d1fae5' : '#f3f4f6',
-        border: `1px solid ${onDuty ? '#6ee7b7' : 'var(--line)'}`,
-        borderRadius: 'var(--radius-md)', padding: '14px 16px', marginBottom: 20,
-      }}>
-        <div>
-          <p style={{ fontWeight: 700, fontSize: 14, color: onDuty ? '#065f46' : 'var(--navy)' }}>
-            {onDuty ? 'You are On Duty' : 'You are Off Duty'}
-          </p>
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-            {onDuty
-              ? 'You will receive alerts for emergencies near your current location.'
-              : 'Go on duty to start receiving emergency alerts.'}
-          </p>
-          {dutyErr && (
-            <p style={{ fontSize: 12, color: 'var(--red)', marginTop: 4 }}>{dutyErr}</p>
-          )}
-        </div>
-        <button
-          onClick={handleToggleDuty}
-          disabled={togglingDuty}
-          style={{
-            background: onDuty ? 'var(--red)' : 'var(--green)',
-            color: '#fff', border: 'none', borderRadius: 'var(--radius-md)',
-            padding: '10px 18px', fontWeight: 600, fontSize: 13,
-            cursor: togglingDuty ? 'not-allowed' : 'pointer',
-            opacity: togglingDuty ? 0.6 : 1, whiteSpace: 'nowrap',
-          }}>
-          {togglingDuty ? 'Updating...' : onDuty ? 'Go Off Duty' : 'Go On Duty'}
-        </button>
-      </div>
 
       {/* Stats */}
       <div className="stat-grid">
