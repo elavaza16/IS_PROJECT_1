@@ -2,7 +2,7 @@ const ICONS = {
   error:   "⚠",
   success: "✓",
   warning: "ℹ",
-  info:    "ℹ",
+  info:    "",
 };
 
 export default function Alert({ type = "info", title, children }) {

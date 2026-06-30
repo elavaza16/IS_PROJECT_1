@@ -502,13 +502,27 @@ exports.respondToAlert = async (req, res) => {
       // ── End notification ────────────────────────────────────
 
     } else {
-      await db.query(
-        `UPDATE dispatch_alerts SET status = 'declined', responded_at = NOW()
-         WHERE incident_id = ? AND volunteer_id = (
-           SELECT volunteer_id FROM volunteers WHERE user_id = ?
-         )`,
-        [id, req.user.id]
+      const [volRows] = await db.query(
+        'SELECT volunteer_id FROM volunteers WHERE user_id = ?', [req.user.id]
       );
+      const volunteerId = volRows[0]?.volunteer_id;
+
+      const [updateResult] = await db.query(
+        `UPDATE dispatch_alerts SET status = 'declined', responded_at = NOW()
+         WHERE incident_id = ? AND volunteer_id = ?`,
+        [id, volunteerId]
+      );
+
+      // This volunteer picked the incident up from the shared queue rather
+      // than being directly dispatched, so no dispatch_alerts row exists yet
+      // — create one so the decline is recorded and it stops resurfacing.
+      if (updateResult.affectedRows === 0) {
+        await db.query(
+          `INSERT INTO dispatch_alerts (incident_id, volunteer_id, radius_km, status, responded_at)
+           VALUES (?,?,0,'declined',NOW())`,
+          [id, volunteerId]
+        );
+      }
     }
 
     res.json({ message: `Alert ${response}.` });

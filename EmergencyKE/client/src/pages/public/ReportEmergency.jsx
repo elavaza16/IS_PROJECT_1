@@ -67,7 +67,7 @@ export default function ReportEmergency() {
         state: { justReported: true, reference: data.reference_number }
       });
     } catch (err) {
-      setErr(err.response?.data?.error || 'Failed to report. Please try again.');
+      setErr(err.response?.data?.error || 'Failed to report. You can not have more than 3 active incidents.');
       setLoading(false);
     }
   };

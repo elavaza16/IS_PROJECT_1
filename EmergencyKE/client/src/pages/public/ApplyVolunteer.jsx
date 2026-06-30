@@ -20,10 +20,11 @@ export default function ApplyVolunteer() {
     first_aid_cert:     '',
     declaration_signed: false,
   });
-  const [loading,  setLoading]  = useState(false);
-  const [locating, setLocating] = useState(false);
-  const [err,      setErr]      = useState('');
-  const [ok,       setOk]       = useState('');
+  const [loading,   setLoading]   = useState(false);
+  const [locating,  setLocating]  = useState(false);
+  const [placeName, setPlaceName] = useState('');
+  const [err,       setErr]       = useState('');
+  const [ok,        setOk]        = useState('');
 
   const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
