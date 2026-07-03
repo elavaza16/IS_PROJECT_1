@@ -167,8 +167,8 @@ export default function MyReports() {
                     </span>
                   </div>
 
-                  {/* Row 4 — responding volunteer, once assigned */}
-                  {inc.volunteer_name && (
+                  {/* Row 4 — responding volunteer, only once they have accepted */}
+                  {inc.volunteer_name && ['in_progress', 'resolved'].includes(inc.status) && (
                     <div style={{ display: 'flex', alignItems: 'center',
                       gap: 4, fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
                       <MdPerson size={13} color="var(--navy)" />

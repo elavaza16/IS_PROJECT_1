@@ -155,8 +155,8 @@ export default function ActiveIncident() {
               </div>
             </div>
 
-            {/* Responding volunteer's contact details, once assigned */}
-            {incident.volunteer_name && (
+            {/* Responding volunteer's contact details — only once they have actually accepted */}
+            {incident.volunteer_name && ['in_progress', 'resolved'].includes(incident.status) && (
               <div style={{ margin: '0 16px 16px', padding: 12,
                 background: 'var(--grey-lt)', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
